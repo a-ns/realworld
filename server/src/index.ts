@@ -1,9 +1,11 @@
 import "reflect-metadata";
 import { GraphQLServer } from "graphql-yoga";
-import { flattenDeep, difference }from 'lodash'
 import { createConnection } from "typeorm";
+
 import { Article } from "./entity/Article";
 import { Tag } from "./entity/Tag";
+
+
 const typeDefs = `
   type Query {
     user(id: Int!): UserResponse!
@@ -77,19 +79,7 @@ const resolvers = {
   Mutation: {
     createArticle: async (_: any, args: any) => {
       try {
-        const tagsKinds = args.tags.map((tag: any) => tag.kind)
-        let tagsKindsFinds =  tagsKinds.map((kind: string) => Tag.find({where: {kind}}))
-        tagsKindsFinds = flattenDeep(await Promise.all(tagsKindsFinds))
-        let tagsToMake: any[] = args.tags
-        tagsToMake = difference(tagsKinds, tagsKindsFinds.map((f: any) => f.kind))
-        const tagsMade = await Promise.all(tagsToMake.map(kind => Tag.create({kind}).save()))
-        const finalTags = [...tagsKindsFinds, ...tagsMade]
-      
-       
-        const article = Article.create({...args})
-        article.tags = finalTags as any
-
-        await article.save()
+        const article = await Article.saveWithTags(args)
         return {
           ok: true,
           article
