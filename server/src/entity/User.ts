@@ -1,20 +1,22 @@
 import { Entity, BaseEntity, PrimaryColumn, Column, OneToMany, ManyToMany, ManyToOne } from "typeorm";
+import { IsEmail } from 'class-validator'
 import { Article } from "./Article";
 import { Comment } from './Comment'
 @Entity()
 export class User extends BaseEntity {
 
     @PrimaryColumn()
+    @IsEmail()
     email: string
 
-    @Column()
-    token: string
-
-    @PrimaryColumn()
+    @Column({unique: true})
     username: string
 
-    @Column()
+    @Column({nullable: true})
     bio: string
+
+    @Column()
+    password: string
 
     @OneToMany(() => Article, article => article.author)
     articles: Article[]

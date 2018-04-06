@@ -11,6 +11,8 @@
    "author": "Alex Lindemann <exmann94@gmail.com> (http://github.com/a-ns)",
    "license": "ISC",
    "devDependencies": {
+      "@types/bcrypt": "^1.0.0",
+      "@types/jsonwebtoken": "^7.2.6",
       "@types/lodash": "^4.14.106",
       "@types/node": "^8.0.29",
       "@types/ws": "^4.0.2",
@@ -21,8 +23,10 @@
       "typescript": "2.5.2"
    },
    "dependencies": {
-      "@types/dotenv": "^4.0.3",
+      "bcrypt": "^1.0.3",
+      "class-validator": "^0.8.5",
       "graphql-yoga": "^1.7.1",
+      "jsonwebtoken": "^8.2.1",
       "lodash": "^4.17.5",
       "pg": "^7.4.1",
       "reflect-metadata": "^0.1.10",

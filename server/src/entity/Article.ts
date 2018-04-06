@@ -5,19 +5,14 @@ import { User } from "./User";
 import { Comment } from './Comment'
 @Entity()
 export class Article extends BaseEntity {
-    static async saveWithTags(args: any){
+    static async saveWithTags(args: any): Promise<Article> {
         const tagsKinds = args.tags.map((tag: any) => tag.kind)
-        let tagsKindsFinds =  tagsKinds.map((kind: string) => Tag.find({where: {kind}}))
-        tagsKindsFinds = flattenDeep(await Promise.all(tagsKindsFinds))
-        let tagsToMake: any[] = args.tags
-        tagsToMake = difference(tagsKinds, tagsKindsFinds.map((f: any) => f.kind))
-        const tagsMade = await Promise.all(tagsToMake.map(kind => Tag.create({kind}).save()))
-        const finalTags = [...tagsKindsFinds, ...tagsMade]
+        const existingTags = flattenDeep(await Promise.all(tagsKinds.map((kind: string) => Tag.find({where: {kind}}))))
+        const tagsToMake = difference(tagsKinds, existingTags.map((f: any) => f.kind))
+        const newTags = await Promise.all(tagsToMake.map(kind => Tag.create({kind}).save()))
+        const finalTags = [...existingTags, ...newTags]
 
-        const article = Article.create({...args})
-        article.tags = finalTags as any
-
-        return article.save()
+        return Article.create({...args, tags: finalTags}).save()
     }
     @PrimaryGeneratedColumn()
     id: number
@@ -34,7 +29,7 @@ export class Article extends BaseEntity {
     @Column()
     body: string
 
-    @ManyToMany(() => Tag, {cascade:true })
+    @ManyToMany(() => Tag)
     @JoinTable()
     tags: Tag[]
 
