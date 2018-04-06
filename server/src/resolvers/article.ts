@@ -1,8 +1,9 @@
 import { Article } from "../entity/Article";
-import { ResolverMap } from '../types/ResolverType'
+import { ResolverMap } from "../types/ResolverType";
 
 export const articleResolver = (): ResolverMap => ({
   Query: {
+    
     article: async (_: any, args: any) =>
       Article.findOne(args.id, { relations: ["tags"] }),
     articles: async () => {
@@ -30,8 +31,7 @@ export const articleResolver = (): ResolverMap => ({
         return {
           ok: false,
           error: {
-            what: "Article",
-            why: "Could not create this article"
+            body: ["Could not create this article"]
           }
         };
       }

@@ -1,9 +1,12 @@
-import { Entity, BaseEntity, PrimaryColumn, Column, OneToMany, ManyToMany, ManyToOne } from "typeorm";
+import { Entity, BaseEntity, PrimaryColumn, Column, OneToMany, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { IsEmail } from 'class-validator'
 import { Article } from "./Article";
 import { Comment } from './Comment'
 @Entity()
 export class User extends BaseEntity {
+    
+    @PrimaryGeneratedColumn()
+    id: number
 
     @PrimaryColumn()
     @IsEmail()
