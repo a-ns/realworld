@@ -1,5 +1,7 @@
 import { Article } from "../entity/Article";
-export const articleResolver = () => ({
+import { ResolverMap } from '../types/ResolverType'
+
+export const articleResolver = (): ResolverMap => ({
   Query: {
     article: async (_: any, args: any) =>
       Article.findOne(args.id, { relations: ["tags"] }),

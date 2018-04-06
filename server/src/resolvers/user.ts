@@ -1,7 +1,9 @@
-import { User } from "../entity/User";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
-export const userResolver = (SALT_ROUNDS: number, SECRET: string) => ({
+
+import { ResolverMap } from '../types/ResolverType'
+import { User } from "../entity/User";
+export const userResolver = (SALT_ROUNDS: number, SECRET: string): ResolverMap => ({
   Query: {},
   Mutation: {
     login: async (_: any, args: { email: string; password: string }) => {

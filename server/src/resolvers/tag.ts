@@ -1,6 +1,6 @@
 import { Tag } from "../entity/Tag";
-
-export const tagResolver = () => ({
+import { ResolverMap } from '../types/ResolverType'
+export const tagResolver = (): ResolverMap => ({
   Query: {
     tags: async () => Tag.find()
   },
