@@ -1,11 +1,18 @@
 import { Article } from "../entity/Article";
 import { ResolverMap } from "../types/ResolverType";
+import { pick } from "lodash"
 
+import {  ArticleQueryArgs, CreateArticleMutationArgs } from "../types/"
 export const articleResolver = (): ResolverMap => ({
   Query: {
-    
-    article: async (_: any, args: any) =>
-      Article.findOne(args.id, { relations: ["tags"] }),
+  article: async (_: any, args: ArticleQueryArgs, context: {user: string}) => {
+    const article = await Article.findOne(args.id, { relations: ["tags"] })
+    const following = !!article.author.followers.find(follower => follower.email === context.user)
+    return {
+      ...article,
+      author: {...pick(article.author, ["username", "bio", "image", /* "following" */]), following}
+    }
+  },
     articles: async () => {
       try {
         const articles = await Article.find({ relations: ["tags"] });
@@ -20,7 +27,7 @@ export const articleResolver = (): ResolverMap => ({
     }
   },
   Mutation: {
-    createArticle: async (_: any, args: any) => {
+    createArticle: async (_: any, args: CreateArticleMutationArgs) => {
       try {
         const article = await Article.saveWithTags(args);
         return {
@@ -36,5 +43,5 @@ export const articleResolver = (): ResolverMap => ({
         };
       }
     }
-  }
-});
+  },
+})

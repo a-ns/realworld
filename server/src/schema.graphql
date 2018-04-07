@@ -1,0 +1,78 @@
+  type ArticlesResponse {
+    articles: [Article!]
+    articlesCount: Int!
+  }
+
+  type User {
+
+    id: Int!
+    email: String!
+    username: String!
+    image: String
+    bio: String!
+    following: Boolean! 
+  }
+
+  type Error {
+    body: [String!]!
+  }
+
+  type UserResponse {
+    ok: Boolean!
+    user: User
+    errors: Error
+  }
+
+  type Article {
+    slug: String!
+    title: String!
+    description: String!
+    body: String!
+    tagList: [String!]!
+    createdAt: String!
+    updatedAt: String!
+    favorited: Boolean! 
+    favoritesCount: Int!
+    author: ArticleAuthorLink
+  }
+
+  type ArticleAuthorLink {
+    username: String!
+    bio: String!
+    image: String
+    following: Boolean!
+  }
+  
+
+  type ArticleResponse {
+    article: Article
+    errors: Error
+  }
+
+  type RegisterResponse {
+    ok: Boolean!
+    user: User
+    errors: Error
+  }
+
+  type LoginResponse {
+    email: String!
+    token: String!
+    username: String!
+    bio: String
+    image: String
+    errors: Error
+  }
+
+  type Query {
+    user: User
+    article(id: Int!): Article!
+    articles(tag: String, authoredBy: String, favoritedBy: String) : ArticlesResponse!
+    tags: [String!]
+  }
+  type Mutation {
+    login(email: String!, password: String!): LoginResponse!
+    createUser(email: String!, username: String!, image: String, bio: String!): UserResponse!
+    createArticle(slug: String!, title: String!, description: String!, body: String!, tags: [String!]): ArticleResponse!
+    register(email: String!, password: String!, username: String!): RegisterResponse!
+  }

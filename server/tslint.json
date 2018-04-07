@@ -7,7 +7,9 @@
       "member-access": false,
       "object-literal-sort-keys": false,
       "ordered-imports": false,
-      "interface-name": false
+      "interface-name": false,
+      "no-unused-variable": false,
+      "no-unused-import": false
     },
     "rulesDirectory": []
   }

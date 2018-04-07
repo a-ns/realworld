@@ -4,6 +4,7 @@ import * as jwt from "jsonwebtoken";
 import { ResolverMap } from "../types/ResolverType";
 import { User } from "../entity/User";
 import { RequiresAuth } from "../auth";
+import { LoginMutationArgs, RegisterMutationArgs } from "../types";
 export const userResolver = (
   SALT_ROUNDS: number,
   SECRET: string
@@ -14,7 +15,7 @@ export const userResolver = (
     )
   },
   Mutation: {
-    login: async (_: any, args: { email: string; password: string }) => {
+    login: async (_: any, args: LoginMutationArgs) => {
       try {
         const user = await User.findOne({ where: { email: args.email } });
         const match = await bcrypt.compare(args.password, user.password);
@@ -31,7 +32,7 @@ export const userResolver = (
     },
     register: async (
       _: any,
-      args: { username: string; email: string; password: string }
+      args: RegisterMutationArgs
     ) => {
       try {
         if (args.password.length < 5) {

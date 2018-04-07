@@ -5,7 +5,8 @@
    "main": "index.js",
    "scripts": {
       "start": "nodemon --exec ts-node src/index.ts",
-      "build": "tsc"
+      "build": "tsc",
+      "generate": "npx gql-gen -u http://localhost:4000 --template typescript --out ./src/types/index.ts \"./src/**/*.graphql \""
    },
    "keywords": [],
    "author": "Alex Lindemann <exmann94@gmail.com> (http://github.com/a-ns)",
@@ -16,6 +17,7 @@
       "@types/lodash": "^4.14.106",
       "@types/node": "^8.0.29",
       "@types/ws": "^4.0.2",
+      "graphql-code-generator": "^0.8.21",
       "nodemon": "^1.17.3",
       "ts-node": "3.3.0",
       "tslint": "^5.9.1",
@@ -25,6 +27,7 @@
    "dependencies": {
       "bcrypt": "^1.0.3",
       "class-validator": "^0.8.5",
+      "graphql-import": "^0.5.0",
       "graphql-yoga": "^1.7.1",
       "jsonwebtoken": "^8.2.1",
       "lodash": "^4.17.5",
