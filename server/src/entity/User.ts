@@ -21,6 +21,9 @@ export class User extends BaseEntity {
     @Column()
     password: string
 
+    @Column({nullable: true})
+    image: string
+
     @OneToMany(() => Article, article => article.author)
     articles: Article[]
 

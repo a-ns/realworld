@@ -8,12 +8,10 @@ export interface Query {
 }
 
 export interface User {
-  id: number;
   email: string;
   username: string;
   image?: string | null;
   bio: string;
-  following: boolean;
 }
 
 export interface Article {
@@ -62,7 +60,6 @@ export interface Error {
 }
 
 export interface UserResponse {
-  ok: boolean;
   user?: User | null;
   errors?: Error | null;
 }
@@ -73,7 +70,6 @@ export interface ArticleResponse {
 }
 
 export interface RegisterResponse {
-  ok: boolean;
   user?: User | null;
   errors?: Error | null;
 }

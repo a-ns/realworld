@@ -5,12 +5,10 @@
 
   type User {
 
-    id: Int!
     email: String!
     username: String!
     image: String
     bio: String!
-    following: Boolean! 
   }
 
   type Error {
@@ -18,7 +16,6 @@
   }
 
   type UserResponse {
-    ok: Boolean!
     user: User
     errors: Error
   }
@@ -50,7 +47,6 @@
   }
 
   type RegisterResponse {
-    ok: Boolean!
     user: User
     errors: Error
   }
