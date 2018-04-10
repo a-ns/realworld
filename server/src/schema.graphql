@@ -1,74 +1,147 @@
-  type ArticlesResponse {
-    articles: [Article!]
-    articlesCount: Int!
-  }
+type User {
+  email: String!
+  username: String!
+  token: String
+  image: String
+  bio: String!
+}
 
-  type User {
+type Profile {
+  username: String!
+  bio: String
+  image: String
+  following: Boolean!
+  articles(first: Int, after: String): ArticlesConnection
+  comments(first: Int, after: String): CommentsConnection
+  favorites(first: Int, after: String): ArticlesConnection
+  feed(first: Int, after: String): ArticlesConnection
+}
 
+type ArticlesConnection {
+  count: Int!
+  edges: [ArticleEdge]
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  endCursor: String!
+  hasNextPage: Boolean!
+}
+
+type ArticleEdge {
+  node: Article
+  cursor: String!
+}
+
+type Error {
+  body: [String!]!
+}
+
+type Article {
+  slug: String!
+  title: String!
+  description: String!
+  body: String!
+  tagList: [String!]!
+  createdAt: String!
+  updatedAt: String!
+  favorited: Boolean!
+  favoritesCount: Int!
+  author: Profile!
+  comments(first: Int, after: String): CommentsConnection
+}
+
+type Comment {
+  id: Int!
+  createdAt: String!
+  updatedAt: String!
+  body: String!
+  author: Profile!
+}
+
+type CommentEdge {
+  node: Comment
+  cursor: String!
+}
+
+type CommentsConnection {
+  count: Int!
+  edges: [CommentEdge]
+  pageInfo: PageInfo!
+}
+
+type UserResponse {
+  user: User
+  errors: Error
+}
+
+type ArticleResponse {
+  article: Article
+  errors: Error
+}
+
+type RegisterResponse {
+  user: User
+  errors: Error
+}
+
+type LoginResponse {
+  user: User
+  errors: Error
+}
+
+type CommentResponse {
+  comment: Comment
+  errors: Error
+}
+
+type ProfileResponse {
+  profile: Profile
+  errors: Error
+}
+
+input ArticleUpdateInput {
+  body: String
+  description: String
+  title: String
+}
+
+type Query {
+  user: User
+  article(slug: String): Article
+  articles(
+    tag: String
+    authoredBy: String
+    favoritedBy: String
+  ): ArticlesConnection
+  feed(first: Int, after: String): ArticlesConnection
+  profile(username: String!): ProfileResponse!
+  tags: [String!]
+  # No need for comments query, can just query the article and get the comments from it
+}
+
+type Mutation {
+  login(email: String!, password: String!): LoginResponse!
+  register(
     email: String!
+    password: String!
     username: String!
-    image: String
-    bio: String!
-  }
+  ): RegisterResponse!
+  updateUser(email: String, bio: String, image: String): UserResponse!
 
-  type Error {
-    body: [String!]!
-  }
-
-  type UserResponse {
-    user: User
-    errors: Error
-  }
-
-  type Article {
+  # Article
+  createArticle(
     slug: String!
     title: String!
     description: String!
     body: String!
-    tagList: [String!]!
-    createdAt: String!
-    updatedAt: String!
-    favorited: Boolean! 
-    favoritesCount: Int!
-    author: ArticleAuthorLink
-  }
+    tagList: [String!]
+  ): ArticleResponse!
+  updateArticle(slug: String, changes: ArticleUpdateInput!): ArticleResponse
+  favoriteArticle(slug: String!): ArticleResponse
+  deleteArticle(slug: String!): Boolean!
 
-  type ArticleAuthorLink {
-    username: String!
-    bio: String!
-    image: String
-    following: Boolean!
-  }
-  
-
-  type ArticleResponse {
-    article: Article
-    errors: Error
-  }
-
-  type RegisterResponse {
-    user: User
-    errors: Error
-  }
-
-  type LoginResponse {
-    email: String!
-    token: String!
-    username: String!
-    bio: String
-    image: String
-    errors: Error
-  }
-
-  type Query {
-    user: User
-    article(id: Int!): Article!
-    articles(tag: String, authoredBy: String, favoritedBy: String) : ArticlesResponse!
-    tags: [String!]
-  }
-  type Mutation {
-    login(email: String!, password: String!): LoginResponse!
-    createUser(email: String!, username: String!, image: String, bio: String!): UserResponse!
-    createArticle(slug: String!, title: String!, description: String!, body: String!, tags: [String!]): ArticleResponse!
-    register(email: String!, password: String!, username: String!): RegisterResponse!
-  }
+  # Comment
+  addComment(slug: String!, body: String!): CommentResponse!
+  deleteComment(id: Int!): Boolean!
+}

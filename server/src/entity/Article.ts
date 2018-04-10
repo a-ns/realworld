@@ -3,17 +3,9 @@ import { Tag } from "./Tag";
 import { flattenDeep, difference } from 'lodash'
 import { User } from "./User";
 import { Comment } from './Comment'
+import { CreateArticleMutationArgs } from "../types";
 @Entity()
 export class Article extends BaseEntity {
-    static async saveWithTags(args: any): Promise<Article> {
-        const tagsKinds = args.tags.map((tag: any) => tag.kind)
-        const existingTags = flattenDeep(await Promise.all(tagsKinds.map((kind: string) => Tag.find({where: {kind}}))))
-        const tagsToMake = difference(tagsKinds, existingTags.map((f: any) => f.kind))
-        const newTags = await Promise.all(tagsToMake.map(kind => Tag.create({kind}).save()))
-        const finalTags = [...existingTags, ...newTags]
-
-        return Article.create({...args, tags: finalTags}).save()
-    }
     @PrimaryGeneratedColumn()
     id: number
 
@@ -31,7 +23,7 @@ export class Article extends BaseEntity {
 
     @ManyToMany(() => Tag)
     @JoinTable()
-    tags: Tag[]
+    tagList: Tag[]
 
     @CreateDateColumn()
     createdAt: Date

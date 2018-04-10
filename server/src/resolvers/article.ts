@@ -1,60 +1,52 @@
 import { Article } from "../entity/Article";
 import { ResolverMap } from "../types/ResolverType";
-import { pick } from "lodash";
 
-import { ArticleQueryArgs, CreateArticleMutationArgs, ArticlesQueryArgs } from "../types/";
+import {
+  ArticleQueryArgs,
+  CreateArticleMutationArgs,
+  ArticlesQueryArgs,
+  ArticlesConnection,
+  UpdateArticleMutationArgs,
+  DeleteArticleMutationArgs
+} from "../types/";
+import { ArticleController } from "../controllers/article";
+import { Errors } from "../types/error";
 export const articleResolver = (): ResolverMap => ({
   Query: {
-    article: async (
-      _: any,
-      args: ArticleQueryArgs,
-      context: { user: string }
-    ) => {
-      const article = await Article.findOne(args.id, { relations: ["tags"] });
-      const following = !!article.author.followers.find(
-        follower => follower.email === context.user
-      );
-      return {
-        ...article,
-        author: {
-          ...pick(article.author, [
-            "username",
-            "bio",
-            "image" /* "following" */
-          ]),
-          following
-        }
-      };
+    article: <T extends ArticleQueryArgs>(_: any, args: T): Promise<Article | Errors> => {
+      const articleController = new ArticleController();
+      return articleController.read(args);
     },
-    articles: async (_: any, args: ArticlesQueryArgs) => {
-      try {
-        const articles = await Article.find({where: args,  relations: ["tags"] });
-        return {
-          articles,
-          articlesCount: articles.length || 0
-        };
-      } catch (err) {
-        console.log(err);
-        return {};
-      }
+    articles: (
+      _: any,
+      args: ArticlesQueryArgs
+    ): Promise<ArticlesConnection | Errors> => {
+      const articleController = new ArticleController();
+      return articleController.read(args);
     }
   },
   Mutation: {
-    createArticle: async (_: any, args: CreateArticleMutationArgs) => {
-      try {
-        const article = await Article.saveWithTags(args);
-        return {
-          ok: true,
-          article
-        };
-      } catch (err) {
-        return {
-          ok: false,
-          error: {
-            body: ["Could not create this article"]
-          }
-        };
-      }
+    createArticle: (_: any, args: CreateArticleMutationArgs) => {
+      const articleController = new ArticleController();
+      return articleController.create(args);
+    },
+    deleteArticle: (_: any, args: DeleteArticleMutationArgs) => {
+      const articleController = new ArticleController()
+      return articleController.delete(args)
+    },
+    updateArticle: (_: any, args: UpdateArticleMutationArgs) => {
+      const articleController = new ArticleController()
+      return articleController.update(args)
+    }
+  },
+  Article: {
+    favorited: (parent: Article, _: any, context: any) => {
+      return parent.favoritedBy.some(
+        follower => follower.username === context.user
+      );
+    },
+    tagList: (parent: Article) => {
+      return parent.tagList.map(tag => tag.kind);
     }
   }
 });

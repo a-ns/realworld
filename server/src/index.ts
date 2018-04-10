@@ -1,4 +1,6 @@
 import "reflect-metadata";
+import * as dotenv from "dotenv"
+dotenv.config()
 import { GraphQLServer } from "graphql-yoga";
 import { createConnection } from "typeorm";
 import * as jwt from "jsonwebtoken";
@@ -21,7 +23,7 @@ const typeDefs =  importSchema(path.join(__dirname, './schema.graphql'))
 const server = new GraphQLServer({
   typeDefs,
   resolvers,
-  context: (req: any): {user: {email: string}} => ({user: req.user})
+  context: (req: any): {user: {username: string}} => ({user: req.user})
 });
 
 server.express.use(authUserMiddleware)

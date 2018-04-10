@@ -2,14 +2,17 @@
 
 export interface Query {
   user?: User | null;
-  article: Article;
-  articles: ArticlesResponse;
+  article?: Article | null;
+  articles?: ArticlesConnection | null;
+  feed?: ArticlesConnection | null;
+  profile: ProfileResponse;
   tags?: string[] | null;
 }
 
 export interface User {
   email: string;
   username: string;
+  token?: string | null;
   image?: string | null;
   bio: string;
 }
@@ -24,39 +27,85 @@ export interface Article {
   updatedAt: string;
   favorited: boolean;
   favoritesCount: number;
-  author?: ArticleAuthorLink | null;
+  author: Profile;
+  comments?: CommentsConnection | null;
 }
 
-export interface ArticleAuthorLink {
-  username: string;
-  bio: string;
-  image?: string | null;
-  following: boolean;
-}
-
-export interface ArticlesResponse {
-  articles?: Article[] | null;
-  articlesCount: number;
-}
-
-export interface Mutation {
-  login: LoginResponse;
-  createUser: UserResponse;
-  createArticle: ArticleResponse;
-  register: RegisterResponse;
-}
-
-export interface LoginResponse {
-  email: string;
-  token: string;
+export interface Profile {
   username: string;
   bio?: string | null;
   image?: string | null;
+  following: boolean;
+  articles?: ArticlesConnection | null;
+  comments?: CommentsConnection | null;
+  favorites?: ArticlesConnection | null;
+  feed?: ArticlesConnection | null;
+}
+
+export interface ArticlesConnection {
+  count: number;
+  edges?: ArticleEdge[] | null;
+  pageInfo: PageInfo;
+}
+
+export interface ArticleEdge {
+  node?: Article | null;
+  cursor: string;
+}
+
+export interface PageInfo {
+  endCursor: string;
+  hasNextPage: boolean;
+}
+
+export interface CommentsConnection {
+  count: number;
+  edges?: CommentEdge[] | null;
+  pageInfo: PageInfo;
+}
+
+export interface CommentEdge {
+  node?: Comment | null;
+  cursor: string;
+}
+
+export interface Comment {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  body: string;
+  author: Profile;
+}
+
+export interface ProfileResponse {
+  profile?: Profile | null;
   errors?: Error | null;
 }
 
 export interface Error {
   body: string[];
+}
+
+export interface Mutation {
+  login: LoginResponse;
+  register: RegisterResponse;
+  updateUser: UserResponse;
+  createArticle: ArticleResponse;
+  updateArticle?: ArticleResponse | null;
+  favoriteArticle?: ArticleResponse | null;
+  deleteArticle: boolean;
+  addComment: CommentResponse;
+  deleteComment: boolean;
+}
+
+export interface LoginResponse {
+  user?: User | null;
+  errors?: Error | null;
+}
+
+export interface RegisterResponse {
+  user?: User | null;
+  errors?: Error | null;
 }
 
 export interface UserResponse {
@@ -69,37 +118,86 @@ export interface ArticleResponse {
   errors?: Error | null;
 }
 
-export interface RegisterResponse {
-  user?: User | null;
+export interface CommentResponse {
+  comment?: Comment | null;
   errors?: Error | null;
 }
+
+export interface ArticleUpdateInput {
+  body?: string | null;
+  description?: string | null;
+  title?: string | null;
+}
 export interface ArticleQueryArgs {
-  id: number;
+  slug?: string | null;
 }
 export interface ArticlesQueryArgs {
   tag?: string | null;
   authoredBy?: string | null;
   favoritedBy?: string | null;
 }
+export interface FeedQueryArgs {
+  first?: number | null;
+  after?: string | null;
+}
+export interface ProfileQueryArgs {
+  username: string;
+}
+export interface CommentsArticleArgs {
+  first?: number | null;
+  after?: string | null;
+}
+export interface ArticlesProfileArgs {
+  first?: number | null;
+  after?: string | null;
+}
+export interface CommentsProfileArgs {
+  first?: number | null;
+  after?: string | null;
+}
+export interface FavoritesProfileArgs {
+  first?: number | null;
+  after?: string | null;
+}
+export interface FeedProfileArgs {
+  first?: number | null;
+  after?: string | null;
+}
 export interface LoginMutationArgs {
   email: string;
   password: string;
 }
-export interface CreateUserMutationArgs {
+export interface RegisterMutationArgs {
   email: string;
+  password: string;
   username: string;
+}
+export interface UpdateUserMutationArgs {
+  email?: string | null;
+  bio?: string | null;
   image?: string | null;
-  bio: string;
 }
 export interface CreateArticleMutationArgs {
   slug: string;
   title: string;
   description: string;
   body: string;
-  tags?: string[] | null;
+  tagList?: string[] | null;
 }
-export interface RegisterMutationArgs {
-  email: string;
-  password: string;
-  username: string;
+export interface UpdateArticleMutationArgs {
+  slug?: string | null;
+  changes: ArticleUpdateInput;
+}
+export interface FavoriteArticleMutationArgs {
+  slug: string;
+}
+export interface DeleteArticleMutationArgs {
+  slug: string;
+}
+export interface AddCommentMutationArgs {
+  slug: string;
+  body: string;
+}
+export interface DeleteCommentMutationArgs {
+  id: number;
 }
