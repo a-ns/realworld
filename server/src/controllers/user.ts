@@ -8,7 +8,12 @@ import {
   LoginResponse
 } from "../types";
 import { Errors } from "../types/error";
-export class UserController {
+export class UserController extends BaseController {
+  context: {user: string}
+  constructor(context: any){
+    super()
+    this.context = context
+  }
   /*
      * Only called for registration.
      */
@@ -79,5 +84,20 @@ export class UserController {
     } catch (err) {
       return { errors: { body: ["Login unsuccessful"] } };
     }
+  }
+
+  async feed(args: any){
+    const user = await User.findOne({where: {username: this.context.user}})
+
+    return this.paginate(user.articles, {...args})
+  }
+
+  comments(args: any){
+    const {first, after, comments}  = args
+    return this.paginate(comments, {first, after})
+  }
+  favorites(args: any){
+    const {first, after, favorites} = args
+    return this.paginate(favorites, {first, after})
   }
 }

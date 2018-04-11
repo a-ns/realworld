@@ -6,7 +6,10 @@ import {
   LoginMutationArgs,
   RegisterMutationArgs,
   LoginResponse,
-  RegisterResponse
+  RegisterResponse,
+  CommentsProfileArgs,
+  FavoritesProfileArgs,
+  FeedQueryArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
@@ -14,6 +17,20 @@ export const userResolver = (): ResolverMap => ({
   Query: {
     user: RequiresAuth(async (_, __, context, ___) =>
       User.findOne({ where: { email: context.user.username } })
+    ),
+    feed: RequiresAuth(
+      async (_, { first, after }: FeedQueryArgs, context: any) => {
+        try {
+          const userController = new UserController(context)
+          return userController.feed({first, after})
+        } catch (err) {
+          return {
+            errors: {
+              body: ["Unable to find this feed"]
+            }
+          };
+        }
+      }
     )
   },
   Mutation: {
@@ -21,72 +38,38 @@ export const userResolver = (): ResolverMap => ({
       _: any,
       args: LoginMutationArgs
     ): Promise<LoginResponse | Errors> => {
-      const controller = new UserController();
+      const controller = new UserController(null);
       return controller.login(args);
     },
     register: async (
       _: any,
       args: RegisterMutationArgs
     ): Promise<RegisterResponse | Errors> => {
-      const controller = new UserController();
+      const controller = new UserController(null);
 
       return controller.create(args);
     }
   },
   Profile: {
     following: (parent: User, _, context: any) => {
-      if(!context.user){
+      if (!context.user) {
         return false;
       }
-      return parent.followers.some((follower) => follower.username === context.user)
+      return parent.followers.some(
+        follower => follower.username === context.user
+      );
     },
-    comments: (parent: User,/* args: {first: number, after: number} */) => {
-      const edges = parent.comments.map(comment => ({
-        node: comment,
-        cursor: comment.id
-      }));
-      const count = edges.length;
-      const pageInfo = {
-        hasNextPage: false,
-        endCursor: edges[count - 1].cursor
-      };
-      return {
-        count,
-        edges,
-        pageInfo
-      };
+    comments: (parent: User, { first, after }: CommentsProfileArgs) => {
+      const userController = new UserController(null)
+      return userController.comments({comments: parent.comments, first, after})
     },
-    favorites: (parent: User, /* args: { first: number; after: number }*/) => {
-      const edges = parent.favorites.map(article => ({
-        node: article,
-        cursor: article.slug
-      }));
-      const count = edges.length;
-      const pageInfo = {
-        hasNextPage: false,
-        endCursor: edges[count - 1].cursor
-      };
-      return {
-        edges,
-        count,
-        pageInfo
-      };
+    favorites: (parent: User, { first, after }: FavoritesProfileArgs) => {
+      const userController = new UserController(null)
+      return userController.favorites({first, after, favorites: parent.favorites})
     },
-    feed: (parent: User,/* args: { first: number; after: number } */) => {
-      const edges = parent.articles.map(article => ({
-        node: article,
-        cursor: article.slug
-      }));
-      const count = edges.length;
-      const pageInfo = {
-        hasNextPage: false,
-        endCursor: edges[count - 1].cursor
-      };
-      return {
-        edges,
-        count,
-        pageInfo
-      };
+    feed: (parent: User, {first, after}: FeedQueryArgs) => {
+      const userController = new UserController(null)
+      return userController.paginate(parent.articles, {first, after})
     }
   }
 });

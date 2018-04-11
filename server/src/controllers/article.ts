@@ -2,12 +2,21 @@ import { flattenDeep, difference } from "lodash";
 import {
   CreateArticleMutationArgs,
   UpdateArticleMutationArgs,
-  DeleteArticleMutationArgs
+  DeleteArticleMutationArgs,
+  ArticleQueryArgs,
+  ArticlesQueryArgs,
+  ArticlesConnection,
 } from "../types";
 import { Article } from "../entity/Article";
 import { Tag } from "../entity/Tag";
 import { Errors } from "../types/error";
-export class ArticleController {
+
+export class ArticleController extends BaseController {
+  context: {user: string}
+  constructor(context: any){
+    super()
+    this.context = context
+  }
   async create(args: CreateArticleMutationArgs): Promise<Article | Errors> {
     try {
       const tagsKinds = args.tagList;
@@ -39,14 +48,26 @@ export class ArticleController {
       };
     }
   }
-  async read(args: any): Promise<any> {
+
+  async readOne(args: ArticleQueryArgs): Promise<Article | Errors> {
     try {
-      if (args.slug) {
-        return Article.findOne({
-          where: { slug: args.slug },
-          relations: ["tagList"]
-        });
+      return Article.findOne({
+        where: { slug: args.slug },
+        relations: ["tagList"]
+      });
+    }
+    catch(err) {
+      return {
+        errors: {
+          body: ["Unable to find specified article"]
+        }
       }
+    }
+    
+  }
+  async read(args: ArticlesQueryArgs): Promise<ArticlesConnection | Errors> {
+    try {
+
       const articles = await Article.find({
         where: args,
         relations: ["tagList"]
@@ -55,7 +76,7 @@ export class ArticleController {
       const edges = articles.map(article => {
         return {
           node: article,
-          cursor: String(article.id)
+          cursor: this.toBase64(article)
         };
       });
       return {
@@ -81,7 +102,11 @@ export class ArticleController {
       article.description = args.changes.description || article.description;
       return { article: article.save() };
     } catch (err) {
-        throw err
+        return {
+          errors: {
+            body: ["Unable to update this article"]
+          }
+        }
     }
   }
 
