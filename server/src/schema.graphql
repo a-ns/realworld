@@ -3,7 +3,7 @@ type User {
   username: String!
   token: String
   image: String
-  bio: String!
+  bio: String
 }
 
 type Profile {
@@ -107,7 +107,7 @@ input ArticleUpdateInput {
 }
 
 type Query {
-  user: User
+  user: UserResponse!
   article(slug: String): Article
   articles(
     tag: String

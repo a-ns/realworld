@@ -10,6 +10,7 @@ import {
 import { Article } from "../entity/Article";
 import { Tag } from "../entity/Tag";
 import { Errors } from "../types/error";
+import { BaseController } from "./base";
 
 export class ArticleController extends BaseController {
   context: {user: string}

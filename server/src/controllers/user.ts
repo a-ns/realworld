@@ -8,6 +8,7 @@ import {
   LoginResponse
 } from "../types";
 import { Errors } from "../types/error";
+import { BaseController } from "./base";
 export class UserController extends BaseController {
   context: {user: string}
   constructor(context: any){
@@ -24,13 +25,17 @@ export class UserController extends BaseController {
       }
       const password = await bcrypt.hash(
         args.password,
-        process.env.SALT_ROUNDS || 12
+        Number(process.env.SALT_ROUNDS) || 12
       );
       const user = await User.create({ ...args, password }).save();
+      const token = jwt.sign({ user: user.username }, process.env.SECRET, {
+        expiresIn: "2d"
+      });
       return {
-        user: pick(user as any, ["email", "token", "username", "bio", "image"])
+        user: {...pick(user as any, ["email", "token", "username", "bio", "image"]), token }
       };
     } catch (err) {
+      console.log(err)
       return {
         errors: {
           body: ["unable to register user"]
@@ -42,7 +47,7 @@ export class UserController extends BaseController {
   async read(args: any) {
     try {
       const user = await User.findOne({ where: args });
-      return user;
+      return {user};
     } catch (err) {
       return { errors: { body: "Unable to find user" } };
     }
@@ -78,6 +83,7 @@ export class UserController extends BaseController {
         expiresIn: "2d"
       }); // generate a JWT token send it back to the user
 
+      console.log('token', token)
       return {
         user: { ...pick(user, ["email", "username", "bio", "image"]), token }
       };

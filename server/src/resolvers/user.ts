@@ -13,10 +13,13 @@ import {
 } from "../types";
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
+import { Context } from "../types/context";
 export const userResolver = (): ResolverMap => ({
   Query: {
-    user: RequiresAuth(async (_, __, context, ___) =>
-      User.findOne({ where: { email: context.user.username } })
+    user: RequiresAuth(async (_, __, context: Context, ___) => {
+      const userController = new UserController(context)
+      return userController.read({username: context.username})
+    }
     ),
     feed: RequiresAuth(
       async (_, { first, after }: FeedQueryArgs, context: any) => {
