@@ -4,7 +4,6 @@ export function RequiresAuth<T extends Resolver>(
 ): Resolver;
 export function RequiresAuth<T extends Resolver>(resolver: T) {
   return (parent: any, args: any, context: any, info: any) => {
-    console.log('RequiresAuth:', context)
     if (!context.username) {
       return { errors: { body: ["not authenticated"] } };
     }

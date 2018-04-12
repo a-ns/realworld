@@ -14,7 +14,7 @@ type Profile {
   articles(first: Int, after: String): ArticlesConnection
   comments(first: Int, after: String): CommentsConnection
   favorites(first: Int, after: String): ArticlesConnection
-  feed(first: Int, after: String): ArticlesConnection
+  # feed(first: Int, after: String): ArticlesConnection
 }
 
 type ArticlesConnection {
@@ -128,7 +128,8 @@ type Mutation {
     username: String!
   ): RegisterResponse!
   updateUser(email: String, bio: String, image: String): UserResponse!
-
+  follow(username: String!): ProfileResponse!
+  unfollow(username: String!): ProfileResponse!
   # Article
   createArticle(
     slug: String!

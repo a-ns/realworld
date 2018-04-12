@@ -1,14 +1,14 @@
-import { Entity, BaseEntity, PrimaryColumn, Column, OneToMany, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, BaseEntity, Column, OneToMany, ManyToMany, PrimaryGeneratedColumn, JoinTable } from "typeorm";
 import { IsEmail } from 'class-validator'
 import { Article } from "./Article";
 import { Comment } from './Comment'
 @Entity()
-export class User extends BaseEntity {
+export class Users extends BaseEntity {
     
     @PrimaryGeneratedColumn()
     id: number
 
-    @PrimaryColumn()
+    @Column()
     @IsEmail()
     email: string
 
@@ -31,11 +31,11 @@ export class User extends BaseEntity {
     comments: Comment[]
 
     @ManyToMany(() => Article, article => article.favoritedBy)
+    @JoinTable()
     favorites: Article[]
 
-    @OneToMany(() => User, user => user.followers)
-    following: User[]
-
-    @ManyToOne(() => User, user => user.following)
-    followers: User[]
+    @ManyToMany(() => Users)
+    @JoinTable({name : "follows", joinColumn: {name:"followed", referencedColumnName: "id"}, inverseJoinColumn: {name:"follower", referencedColumnName:"id"}})
+    // select * from users inner join follows on users.id = follows.followed and follows.follower = { some_id}
+    followers: Users[]
 }

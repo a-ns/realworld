@@ -1,5 +1,5 @@
 import { ResolverMap } from "../types/ResolverType";
-import { User } from "../entity/User";
+import { Users } from "../entity/Users";
 import { RequiresAuth } from "../auth";
 
 import {
@@ -9,7 +9,8 @@ import {
   RegisterResponse,
   CommentsProfileArgs,
   FavoritesProfileArgs,
-  FeedQueryArgs
+  FeedQueryArgs,
+  ProfileQueryArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
@@ -17,15 +18,14 @@ import { Context } from "../types/context";
 export const userResolver = (): ResolverMap => ({
   Query: {
     user: RequiresAuth(async (_, __, context: Context, ___) => {
-      const userController = new UserController(context)
-      return userController.read({username: context.username})
-    }
-    ),
+      const userController = new UserController(context);
+      return userController.read({ username: context.username });
+    }),
     feed: RequiresAuth(
       async (_, { first, after }: FeedQueryArgs, context: any) => {
         try {
-          const userController = new UserController(context)
-          return userController.feed({first, after})
+          const userController = new UserController(context);
+          return userController.feed({ first, after });
         } catch (err) {
           return {
             errors: {
@@ -34,7 +34,20 @@ export const userResolver = (): ResolverMap => ({
           };
         }
       }
-    )
+    ),
+    profile: async (_, args: ProfileQueryArgs) => {
+      try {
+        const profile = await Users.findOne({
+          where: args,
+          relations: ["followers"]
+        });
+        return { profile };
+      } catch (err) {
+        return {
+          errors: { body: ["Unable to find this profile"] }
+        };
+      }
+    }
   },
   Mutation: {
     login: async (
@@ -51,28 +64,44 @@ export const userResolver = (): ResolverMap => ({
       const controller = new UserController(null);
 
       return controller.create(args);
-    }
+    },
+    follow: RequiresAuth(async (_, args: any, context: Context) => {
+      const userController = new UserController(context);
+      return userController.follow(args);
+    }),
+    unfollow: RequiresAuth(async (_, args: any, context: Context) => {
+      const userController = new UserController(context);
+      return userController.unfollow(args);
+    })
   },
   Profile: {
-    following: (parent: User, _, context: any) => {
-      if (!context.user) {
+    following: (parent: Users, _, context: Context) => {
+      if (!context.username) {
         return false;
       }
       return parent.followers.some(
-        follower => follower.username === context.user
+        follower => follower.username === context.username
       );
     },
-    comments: (parent: User, { first, after }: CommentsProfileArgs) => {
-      const userController = new UserController(null)
-      return userController.comments({comments: parent.comments, first, after})
+    comments: (parent: Users, { first, after }: CommentsProfileArgs) => {
+      const userController = new UserController(null);
+      return userController.comments({
+        comments: parent.comments,
+        first,
+        after
+      });
     },
-    favorites: (parent: User, { first, after }: FavoritesProfileArgs) => {
-      const userController = new UserController(null)
-      return userController.favorites({first, after, favorites: parent.favorites})
-    },
-    feed: (parent: User, {first, after}: FeedQueryArgs) => {
-      const userController = new UserController(null)
-      return userController.paginate(parent.articles, {first, after})
+    favorites: (parent: Users, { first, after }: FavoritesProfileArgs) => {
+      const userController = new UserController(null);
+      return userController.favorites({
+        first,
+        after,
+        favorites: parent.favorites
+      });
     }
+    // feed: (parent: Users, {first, after}: FeedQueryArgs) => {
+    //   const userController = new UserController(null)
+    //   return userController.paginate(parent.articles, {first, after})
+    // }
   }
 });

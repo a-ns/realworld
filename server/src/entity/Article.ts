@@ -1,7 +1,7 @@
 import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from "typeorm";
 import { Tag } from "./Tag";
-import { User } from "./User";
 import { Comment } from './Comment'
+import { Users } from "./Users";
 @Entity()
 export class Article extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -29,13 +29,13 @@ export class Article extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date
 
-    @ManyToOne(() => User, user => user.articles)
-    author: User
+    @ManyToOne(() => Users, user => user.articles)
+    author: Users
 
     @OneToMany(() => Comment, comment => comment.article)
     comments: Comment[]
 
-    @ManyToMany(() => User, user => user.favorites)
-    favoritedBy: User[]
+    @ManyToMany(() => Users, user => user.favorites)
+    favoritedBy: Users[]
     
 }

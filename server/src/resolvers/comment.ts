@@ -3,7 +3,7 @@ import { AddCommentMutationArgs, DeleteCommentMutationArgs } from "../types";
 import { RequiresAuth } from "../auth";
 import { Article } from "../entity/Article";
 import { Comment } from "../entity/Comment";
-import { User } from "../entity/User";
+import { Users } from "../entity/Users";
 export const commentResolver = (): ResolverMap => ({
   Mutation: {
     addComment: RequiresAuth(
@@ -13,7 +13,7 @@ export const commentResolver = (): ResolverMap => ({
             where: { slug: args.slug },
             relations: ["article"]
           });
-          const author = await User.findOne(null, {
+          const author = await Users.findOne(null, {
             where: { username: context.user }
           });
           const comment = await Comment.create({

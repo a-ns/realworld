@@ -1,5 +1,5 @@
 import { Entity, BaseEntity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Column, ManyToOne } from "typeorm";
-import { User } from "./User";
+import { Users } from "./Users";
 import { Article } from "./Article";
 
 
@@ -18,8 +18,8 @@ export class Comment extends BaseEntity {
     @Column()
     body: string
 
-    @ManyToOne(() => User, user => user.comments)
-    author: User
+    @ManyToOne(() => Users, user => user.comments)
+    author: Users
 
     @ManyToOne(() => Article, article => article.comments)
     article: Article
