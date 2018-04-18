@@ -5,20 +5,22 @@ import {
   DeleteArticleMutationArgs,
   ArticleQueryArgs,
   ArticlesQueryArgs,
-  ArticlesConnection,
+  ArticlesConnection
 } from "../types";
 import { Article } from "../entity/Article";
 import { Tag } from "../entity/Tag";
 import { Errors } from "../types/error";
 import { BaseController } from "./base";
+import { Users } from "../entity/Users";
+import { Context } from "../types/context";
 
 export class ArticleController extends BaseController {
-  context: {user: string}
-  constructor(context: any){
-    super()
-    this.context = context
+  context: Context;
+  constructor(context: Context) {
+    super();
+    this.context = context;
   }
-  async create(args: CreateArticleMutationArgs): Promise<Article | Errors> {
+  async create(args: CreateArticleMutationArgs) {
     try {
       const tagsKinds = args.tagList;
       const existingTags = flattenDeep(
@@ -37,13 +39,17 @@ export class ArticleController extends BaseController {
       );
 
       const finalTags = [...existingTags, ...newTags];
+      const author = await Users.findOne({where: {username: this.context.username}, relations: ["articles"]})
       const article = await Article.create({
         ...args,
+        author,
         tagList: finalTags
       }).save();
-
-      return article;
+      author.articles.push(article)
+      author.save()
+      return { article };
     } catch (err) {
+      console.log(err)
       return {
         errors: { body: ["Unable to create this article."] }
       };
@@ -56,19 +62,16 @@ export class ArticleController extends BaseController {
         where: { slug: args.slug },
         relations: ["tagList"]
       });
-    }
-    catch(err) {
+    } catch (err) {
       return {
         errors: {
           body: ["Unable to find specified article"]
         }
-      }
+      };
     }
-    
   }
   async read(args: ArticlesQueryArgs): Promise<ArticlesConnection | Errors> {
     try {
-
       const articles = await Article.find({
         where: args,
         relations: ["tagList"]
@@ -103,21 +106,21 @@ export class ArticleController extends BaseController {
       article.description = args.changes.description || article.description;
       return { article: article.save() };
     } catch (err) {
-        return {
-          errors: {
-            body: ["Unable to update this article"]
-          }
+      return {
+        errors: {
+          body: ["Unable to update this article"]
         }
+      };
     }
   }
 
   async delete(args: DeleteArticleMutationArgs) {
     try {
-        const article = await Article.findOne({where: {slug: args.slug}})
-        await Article.delete(article)
-        return true
+      const article = await Article.findOne({ where: { slug: args.slug } });
+      await Article.delete(article);
+      return true;
     } catch (err) {
-        return false
+      return false;
     }
   }
 }

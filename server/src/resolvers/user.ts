@@ -10,11 +10,13 @@ import {
   CommentsProfileArgs,
   FavoritesProfileArgs,
   FeedQueryArgs,
-  ProfileQueryArgs
+  ProfileQueryArgs,
+  ArticlesProfileArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
 import { Context } from "../types/context";
+import { ArticleController } from "../controllers/article";
 export const userResolver = (): ResolverMap => ({
   Query: {
     user: RequiresAuth(async (_, __, context: Context, ___) => {
@@ -39,8 +41,9 @@ export const userResolver = (): ResolverMap => ({
       try {
         const profile = await Users.findOne({
           where: args,
-          relations: ["followers"]
+          relations: ["followers", "articles"]
         });
+        
         return { profile };
       } catch (err) {
         return {
@@ -98,10 +101,14 @@ export const userResolver = (): ResolverMap => ({
         after,
         favorites: parent.favorites
       });
-    }
+    },
     // feed: (parent: Users, {first, after}: FeedQueryArgs) => {
     //   const userController = new UserController(null)
     //   return userController.paginate(parent.articles, {first, after})
     // }
+    articles:(parent: Users, {first, after}: ArticlesProfileArgs) => {
+      const articleController = new ArticleController(null)
+      return articleController.paginate(parent.articles, {first, after})
+    }
   }
 });

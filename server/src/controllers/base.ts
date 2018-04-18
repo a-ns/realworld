@@ -8,12 +8,13 @@ export class BaseController {
   }
 
   paginate(cursorable: any, args: any) {
-    console.log(args)
+    console.log('paginating', args)
     const edges = cursorable.map((item: any) => ({node: item, cursor: this.toBase64(item)}))
+    console.log(edges)
     const count = edges.length
     const pageInfo = {
       hasNextPage: cursorable.length > edges.length,
-      endCursor: edges[edges.length].cursor
+      endCursor: edges[edges.length - 1].cursor
     }
     return {
       edges,
