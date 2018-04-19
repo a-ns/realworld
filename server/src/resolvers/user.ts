@@ -11,7 +11,8 @@ import {
   FavoritesProfileArgs,
   FeedQueryArgs,
   ProfileQueryArgs,
-  ArticlesProfileArgs
+  ArticlesProfileArgs,
+  UpdateUserMutationArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
@@ -23,25 +24,25 @@ export const userResolver = (): ResolverMap => ({
       const userController = new UserController(context);
       return userController.read({ username: context.username });
     }),
-    feed: RequiresAuth(
-      async (_, { first, after }: FeedQueryArgs, context: any) => {
-        try {
-          const userController = new UserController(context);
-          return userController.feed({ first, after });
-        } catch (err) {
-          return {
-            errors: {
-              body: ["Unable to find this feed"]
-            }
-          };
-        }
-      }
-    ),
+    // feed: RequiresAuth(
+    //   async (_, { first, after }: FeedQueryArgs, context: any) => {
+    //     try {
+    //       const userController = new UserController(context);
+    //       return userController.feed({ first, after });
+    //     } catch (err) {
+    //       return {
+    //         errors: {
+    //           body: ["Unable to find this feed"]
+    //         }
+    //       };
+    //     }
+    //   }
+    // ),
     profile: async (_, args: ProfileQueryArgs) => {
       try {
         const profile = await Users.findOne({
           where: args,
-          relations: ["followers", "articles"]
+          relations: ["followers"]
         });
         
         return { profile };
@@ -68,6 +69,10 @@ export const userResolver = (): ResolverMap => ({
 
       return controller.create(args);
     },
+    updateUser: RequiresAuth(async (_, args: UpdateUserMutationArgs, context: Context) => {
+      const userController = new UserController(context)
+      return userController.update(args)
+    }),
     follow: RequiresAuth(async (_, args: any, context: Context) => {
       const userController = new UserController(context);
       return userController.follow(args);
@@ -86,8 +91,8 @@ export const userResolver = (): ResolverMap => ({
         follower => follower.username === context.username
       );
     },
-    comments: (parent: Users, { first, after }: CommentsProfileArgs) => {
-      const userController = new UserController(null);
+    comments: (parent: Users, { first, after }: CommentsProfileArgs, context: Context) => {
+      const userController = new UserController(context);
       return userController.comments({
         comments: parent.comments,
         first,
@@ -106,9 +111,12 @@ export const userResolver = (): ResolverMap => ({
     //   const userController = new UserController(null)
     //   return userController.paginate(parent.articles, {first, after})
     // }
-    articles:(parent: Users, {first, after}: ArticlesProfileArgs) => {
-      const articleController = new ArticleController(null)
-      return articleController.paginate(parent.articles, {first, after})
-    }
+    articles:(parent: Users, {first, after}: ArticlesProfileArgs, context: Context) => {
+      // const articleController = new ArticleController(context)
+      // return articleController.paginate(parent.articles, {first, after})
+      const userController = new UserController(context)
+      return userController.articlesForProfile(parent, {first, after})
+
+    },
   }
 });

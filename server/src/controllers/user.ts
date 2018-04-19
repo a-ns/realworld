@@ -6,12 +6,17 @@ import {
   RegisterMutationArgs,
   RegisterResponse,
   LoginResponse,
-  FeedQueryArgs
+  FeedQueryArgs,
+  UpdateUserMutationArgs,
+  ArticlesProfileArgs,
+  CommentsProfileArgs,
+  FavoritesProfileArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { BaseController } from "./base";
 import { Article } from "../entity/Article";
 import { Context } from "../types/context";
+import { getConnection } from "typeorm";
 export class UserController extends BaseController {
   context: Context;
   constructor(context: any) {
@@ -59,19 +64,26 @@ export class UserController extends BaseController {
     }
   }
 
-  async update(args: any /* UpdateUserMutationArgs */) {
+  async update(args: UpdateUserMutationArgs) {
     try {
-      let user = await Users.findOne({ where: { email: args.email } });
-      user = { ...user, ...args };
+      const user = await Users.findOne({ where: { username: this.context.username } });
+      user.bio = args.bio || user.bio
+      user.email = args.email || user.email
+      user.image = args.image || user.image
+      await user.save()
       return user;
     } catch (err) {
       return { errors: { body: "Unable to update user" } };
     }
   }
 
-  async delete(args: any /* RemoveUserMutationArgs */) {
+  async delete(args: any) {
     try {
-      await Users.delete({ email: args.email });
+      const userToDelete = await Users.findOne({where: {username: this.context.username}})
+      if(!userToDelete) {
+        return false
+      }
+      Users.remove(userToDelete)
       return true;
     } catch (err) {
       return false;
@@ -98,28 +110,49 @@ export class UserController extends BaseController {
     }
   }
 
-  async feed({ first, after }: FeedQueryArgs) {
+  async articlesForProfile(parent: Users, {first = 10, after = null}: ArticlesProfileArgs) {
     try {
-      const cursorArticle: Partial<Article> = JSON.parse(
-        this.fromBase64(after)
-      );
-      const user = await Users.findOne({
-        where: { username: this.context.username }
-      });
-      let articles: Article[] = [];
-      user.followers.forEach(fu => {
-        fu.articles.forEach(a => {
-          if (a.createdAt < cursorArticle.createdAt) {
-            articles.push(a);
-          }
-        });
-      });
-      articles = articles.sort((a, b) => a.createdAt < b.createdAt? -1 : 1)
-      return this.paginate(articles, { first, after });
-    } catch (err) {
-      return err;
+      const createdAfter = this.fromBase64(after).createdAt
+      const query = getConnection().createQueryBuilder()
+                  .select()
+                  .from(Article, "article")
+                  .where("article.authorId = :authorId", {authorId: parent.id})
+      if(createdAfter) {
+        query
+        .andWhere("article.createdAt < :createdAfter" , {createdAfter})
+      }
+      query
+      .orderBy("article.createdAt", "DESC")
+      const [articles, count] = await  query.getManyAndCount()
+      return this.paginate(articles.slice(0, first), {hasNextPage: count > first})
+    }
+    catch(err) {
+      return this.paginate([], null)
     }
   }
+
+  // async feed({ first, after }: FeedQueryArgs) {
+  //   try {
+  //     const cursorArticle: Partial<Article> = JSON.parse(
+  //       this.fromBase64(after)
+  //     );
+  //     const user = await Users.findOne({
+  //       where: { username: this.context.username }
+  //     });
+  //     let articles: Article[] = [];
+  //     user.followers.forEach(fu => {
+  //       fu.articles.forEach(a => {
+  //         if (a.createdAt < cursorArticle.createdAt) {
+  //           articles.push(a);
+  //         }
+  //       });
+  //     });
+  //     articles = articles.sort((a, b) => a.createdAt < b.createdAt? -1 : 1)
+  //     return this.paginate(articles, { first, after });
+  //   } catch (err) {
+  //     return err;
+  //   }
+  // }
   async follow({ username }: any) {
     try {
       const user = await Users.findOne({
@@ -167,12 +200,42 @@ export class UserController extends BaseController {
     }
   }
 
-  comments(args: any) {
-    const { first, after, comments } = args;
-    return this.paginate(comments, { first, after });
+  async comments(parent: Users, {first = 10, after = null}: CommentsProfileArgs) {
+    try {
+      const createdAfter = this.fromBase64(after).createdAfter
+      const query = getConnection()
+                    .createQueryBuilder()
+                    .relation(Users, "comments")
+                    .of(parent)
+                    .select()
+      if(after){
+        query
+        .where("comment.createdAt < :createdAfter", {createdAfter})
+      }
+      const [comments, count] = await query.getManyAndCount()
+      return this.paginate(comments.slice(0, first), {hasNextPage: count > first})
+    } catch(err){
+      return this.paginate([], null)
+    }
+
   }
-  favorites(args: any) {
-    const { first, after, favorites } = args;
-    return this.paginate(favorites, { first, after });
+  async favorites(parent: Users, {first = 10, after = null}: FavoritesProfileArgs) {
+    try {
+      const createdAfter = this.fromBase64(after).createdAfter
+      const query = getConnection()
+                    .createQueryBuilder()
+                    .relation(Users, "favorites")
+                    .of(parent)
+                    .select()
+      if(after){
+        query
+        .where("article.createdAt < :createdAfter", {createdAfter})
+      }
+      const [favorites, count] = await  query.getManyAndCount()
+
+      return this.paginate(favorites.slice(0, first) , {hasNextPage: count > first})              
+    } catch(err){
+      return this.paginate([], null)
+    }
   }
 }

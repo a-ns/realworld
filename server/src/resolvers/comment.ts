@@ -46,12 +46,16 @@ export const commentResolver = (): ResolverMap => ({
             where: { id },
             relations: ["author", "article"]
           });
+          if(!comment){
+            return false
+          }
           if (comment.author.username !== context.username) {
             return false;
           }
           await comment.remove();
           return true;
         } catch (err) {
+          console.log(err)
           return false;
         }
       }

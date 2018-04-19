@@ -5,7 +5,9 @@ import {
   DeleteArticleMutationArgs,
   ArticleQueryArgs,
   ArticlesQueryArgs,
-  ArticlesConnection
+  ArticlesConnection,
+  CommentsArticleArgs,
+  FeedQueryArgs
 } from "../types";
 import { Article } from "../entity/Article";
 import { Tag } from "../entity/Tag";
@@ -13,6 +15,8 @@ import { Errors } from "../types/error";
 import { BaseController } from "./base";
 import { Users } from "../entity/Users";
 import { Context } from "../types/context";
+import { getConnection } from "typeorm";
+import { Comment } from "../entity/Comment";
 
 export class ArticleController extends BaseController {
   context: Context;
@@ -60,7 +64,7 @@ export class ArticleController extends BaseController {
     try {
       return Article.findOne({
         where: { slug: args.slug },
-        relations: ["tagList", "author", "comments", "favoritedBy"]
+        relations: ["tagList", "author", "favoritedBy"]
       });
     } catch (err) {
       return {
@@ -74,7 +78,7 @@ export class ArticleController extends BaseController {
     try {
       const articles = await Article.find({
         where: args,
-        relations: ["tagList", "author", "comments", "favoritedBy"]
+        relations: ["tagList", "author", "favoritedBy"]
       });
 
       const edges = articles.map(article => {
@@ -122,5 +126,36 @@ export class ArticleController extends BaseController {
     } catch (err) {
       return false;
     }
+  }
+
+  async comments(parent: Article, {first, after}: CommentsArticleArgs) {
+    try {
+      const createdAfter = this.fromBase64(after).createdAfter
+      const [comments, count] = await getConnection().createQueryBuilder()
+                             .select()
+                             .from(Comment, "comment")
+                             .where("comment.articleId = :articleId", {articleId: parent.id})
+                             .andWhere("comment.createdAt < :createdAfter", {createdAfter})
+                             .orderBy("comment.createdAt", "DESC")
+                             .getManyAndCount() 
+      return this.paginate(comments.slice(0, first), {hasNextPage: count > first})
+    }
+    catch(err) {
+      return this.paginate([], null)
+    }               
+  }
+
+  async feed({first = 10, after = null}: FeedQueryArgs) {
+    const createdAfter = this.fromBase64(after).createdAt || null
+    const user = await Users.findOne({where: {username: this.context.username}})
+    const userId = user.id
+    const [articles, count] = await getConnection().createQueryBuilder()
+                                  .select()
+                                  .from(Article, "article")
+                                  .where("article.authorId = :authorId", {authorId: userId})
+                                  .andWhere("article.createdAt < :createdAfter", {createdAfter})
+                                  .orderBy("article.createdAt", "DESC")
+                                  .getManyAndCount()
+    return this.paginate(articles.slice(0, first), {hasNextPage: count > first})
   }
 }

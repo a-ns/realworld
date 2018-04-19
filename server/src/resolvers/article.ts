@@ -7,11 +7,14 @@ import {
   ArticlesQueryArgs,
   ArticlesConnection,
   UpdateArticleMutationArgs,
-  DeleteArticleMutationArgs
+  DeleteArticleMutationArgs,
+  CommentsArticleArgs,
+  FeedQueryArgs
 } from "../types/";
 import { ArticleController } from "../controllers/article";
 import { Errors } from "../types/error";
 import { Context } from "../types/context";
+import { RequiresAuth } from "../auth";
 export const articleResolver = (): ResolverMap => ({
   Query: {
     article: (_: any, args: ArticleQueryArgs, context: Context): Promise<Article | Errors> => {
@@ -24,7 +27,11 @@ export const articleResolver = (): ResolverMap => ({
     ): Promise<ArticlesConnection | Errors> => {
       const articleController = new ArticleController(null);
       return articleController.read(args);
-    }
+    },
+    feed: RequiresAuth(async (_: any, args: FeedQueryArgs, context: Context) => {
+      const articleController = new ArticleController(context)
+      return articleController.feed(args)
+    })
   },
   Mutation: {
     createArticle: (_: any, args: CreateArticleMutationArgs, context: Context) => {
@@ -52,16 +59,14 @@ export const articleResolver = (): ResolverMap => ({
       return parent.tagList.map(tag => tag.kind);
     },
     author: (parent: Article) => {
-      console.log('getting author', parent)
       return parent.author
     },
     favoritesCount: (parent: Article) => {
       return parent.favoritedBy.length
     },
-    comments: (parent: Article) => {
-      console.log('resolving comments for article', parent)
-      const articleController = new ArticleController(null)
-      return articleController.paginate(parent.comments, null)
+    comments: (parent: Article, {first = 10, after = null}: CommentsArticleArgs, context: Context) => {
+      const articleController = new ArticleController(context)
+      return articleController.comments(parent, {first, after})
     }
   }
 });
