@@ -18,7 +18,7 @@ export class Comment extends BaseEntity {
     @Column()
     body: string
 
-    @ManyToOne(() => Users, user => user.comments)
+    @ManyToOne(() => Users, user => user.comments, )
     author: Users
 
     @ManyToOne(() => Article, article => article.comments)
