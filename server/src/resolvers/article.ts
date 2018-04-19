@@ -22,7 +22,6 @@ export const articleResolver = (): ResolverMap => ({
       _: any,
       args: ArticlesQueryArgs
     ): Promise<ArticlesConnection | Errors> => {
-      console.log('in articles on profile')
       const articleController = new ArticleController(null);
       return articleController.read(args);
     }
@@ -53,7 +52,16 @@ export const articleResolver = (): ResolverMap => ({
       return parent.tagList.map(tag => tag.kind);
     },
     author: (parent: Article) => {
+      console.log('getting author', parent)
       return parent.author
+    },
+    favoritesCount: (parent: Article) => {
+      return parent.favoritedBy.length
+    },
+    comments: (parent: Article) => {
+      console.log('resolving comments for article', parent)
+      const articleController = new ArticleController(null)
+      return articleController.paginate(parent.comments, null)
     }
   }
 });

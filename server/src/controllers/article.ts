@@ -60,7 +60,7 @@ export class ArticleController extends BaseController {
     try {
       return Article.findOne({
         where: { slug: args.slug },
-        relations: ["tagList"]
+        relations: ["tagList", "author", "comments", "favoritedBy"]
       });
     } catch (err) {
       return {
@@ -74,7 +74,7 @@ export class ArticleController extends BaseController {
     try {
       const articles = await Article.find({
         where: args,
-        relations: ["tagList"]
+        relations: ["tagList", "author", "comments", "favoritedBy"]
       });
 
       const edges = articles.map(article => {
