@@ -7,7 +7,8 @@ import {
   ArticlesQueryArgs,
   ArticlesConnection,
   CommentsArticleArgs,
-  FeedQueryArgs
+  FeedQueryArgs,
+  FavoriteArticleMutationArgs
 } from "../types";
 import { Article } from "../entity/Article";
 import { Tag } from "../entity/Tag";
@@ -43,17 +44,20 @@ export class ArticleController extends BaseController {
       );
 
       const finalTags = [...existingTags, ...newTags];
-      const author = await Users.findOne({where: {username: this.context.username}, relations: ["articles"]})
+      const author = await Users.findOne({
+        where: { username: this.context.username },
+        relations: ["articles"]
+      });
       const article = await Article.create({
         ...args,
         author,
         tagList: finalTags
       }).save();
-      author.articles.push(article)
-      author.save()
+      author.articles.push(article);
+      author.save();
       return { article };
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return {
         errors: { body: ["Unable to create this article."] }
       };
@@ -128,34 +132,67 @@ export class ArticleController extends BaseController {
     }
   }
 
-  async comments(parent: Article, {first, after}: CommentsArticleArgs) {
+  async comments(parent: Article, { first, after }: CommentsArticleArgs) {
     try {
-      const createdAfter = this.fromBase64(after).createdAfter
-      const [comments, count] = await getConnection().createQueryBuilder()
-                             .select()
-                             .from(Comment, "comment")
-                             .where("comment.articleId = :articleId", {articleId: parent.id})
-                             .andWhere("comment.createdAt < :createdAfter", {createdAfter})
-                             .orderBy("comment.createdAt", "DESC")
-                             .getManyAndCount() 
-      return this.paginate(comments.slice(0, first), {hasNextPage: count > first})
+      const createdAfter = this.fromBase64(after).createdAfter;
+      const [comments, count] = await getConnection()
+        .createQueryBuilder()
+        .select()
+        .from(Comment, "comment")
+        .where("comment.articleId = :articleId", { articleId: parent.id })
+        .andWhere("comment.createdAt < :createdAfter", { createdAfter })
+        .orderBy("comment.createdAt", "DESC")
+        .getManyAndCount();
+      return this.paginate(comments.slice(0, first), {
+        hasNextPage: count > first
+      });
+    } catch (err) {
+      return this.paginate([], null);
     }
-    catch(err) {
-      return this.paginate([], null)
-    }               
   }
 
-  async feed({first = 10, after = null}: FeedQueryArgs) {
-    const createdAfter = this.fromBase64(after).createdAt || null
-    const user = await Users.findOne({where: {username: this.context.username}})
-    const userId = user.id
-    const [articles, count] = await getConnection().createQueryBuilder()
-                                  .select()
-                                  .from(Article, "article")
-                                  .where("article.authorId = :authorId", {authorId: userId})
-                                  .andWhere("article.createdAt < :createdAfter", {createdAfter})
-                                  .orderBy("article.createdAt", "DESC")
-                                  .getManyAndCount()
-    return this.paginate(articles.slice(0, first), {hasNextPage: count > first})
+  async feed({ first = 10, after = null }: FeedQueryArgs) {
+    const createdAfter = this.fromBase64(after).createdAt || null;
+    const user = await Users.findOne({
+      where: { username: this.context.username }
+    });
+    const userId = user.id;
+    const [articles, count] = await getConnection()
+      .createQueryBuilder()
+      .select()
+      .from(Article, "article")
+      .where("article.authorId = :authorId", { authorId: userId })
+      .andWhere("article.createdAt < :createdAfter", { createdAfter })
+      .orderBy("article.createdAt", "DESC")
+      .getManyAndCount();
+    return this.paginate(articles.slice(0, first), {
+      hasNextPage: count > first
+    });
+  }
+
+  async favorite(args: FavoriteArticleMutationArgs) {
+    try {
+      console.log('in favorite')
+      const [article, user] = await Promise.all([
+        Article.findOne({ where: { slug: args.slug } , relations: ["author", "favoritedBy", "comments", "tagList"]}),
+        Users.findOne({
+          where: { username: this.context.username }
+        })
+      ]);
+      if(!article || !user){
+        throw new Error()
+      }
+      console.log(article,)
+      user.favorites = [...user.favorites, article];
+      user.save();
+      return {article};
+    } catch (err) {
+      console.log(err)
+      return {
+        errors: {
+          body:[ "unable favorite the specified article"]
+        }
+      };
+    }
   }
 }

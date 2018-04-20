@@ -6,7 +6,6 @@ import {
   RegisterMutationArgs,
   RegisterResponse,
   LoginResponse,
-  FeedQueryArgs,
   UpdateUserMutationArgs,
   ArticlesProfileArgs,
   CommentsProfileArgs,
@@ -77,7 +76,7 @@ export class UserController extends BaseController {
     }
   }
 
-  async delete(args: any) {
+  async delete() {
     try {
       const userToDelete = await Users.findOne({where: {username: this.context.username}})
       if(!userToDelete) {
@@ -100,8 +99,6 @@ export class UserController extends BaseController {
       const token = jwt.sign({ user: user.username }, process.env.SECRET, {
         expiresIn: "2d"
       }); // generate a JWT token send it back to the user
-
-      console.log("token", token);
       return {
         user: { ...pick(user, ["email", "username", "bio", "image"]), token }
       };
@@ -165,7 +162,6 @@ export class UserController extends BaseController {
       userToFollow.followers = [...userToFollow.followers, user]
       await user.save();
       await userToFollow.save();
-      console.log(user, userToFollow)
       return { profile: userToFollow };
     } catch (err) {
       console.log(err)
@@ -202,37 +198,26 @@ export class UserController extends BaseController {
 
   async comments(parent: Users, {first = 10, after = null}: CommentsProfileArgs) {
     try {
-      const createdAfter = this.fromBase64(after).createdAfter
-      const query = getConnection()
-                    .createQueryBuilder()
-                    .relation(Users, "comments")
-                    .of(parent)
-                    .select()
+      let comments = parent.comments  
       if(after){
-        query
-        .where("comment.createdAt < :createdAfter", {createdAfter})
+        const createdAfter = this.fromBase64(after).createdAt
+        comments = comments.filter((c) => c.createdAt.toISOString() > createdAfter)
       }
-      const [comments, count] = await query.getManyAndCount()
+      const count = comments.length  
       return this.paginate(comments.slice(0, first), {hasNextPage: count > first})
     } catch(err){
+      console.log(err)
       return this.paginate([], null)
     }
-
   }
   async favorites(parent: Users, {first = 10, after = null}: FavoritesProfileArgs) {
     try {
-      const createdAfter = this.fromBase64(after).createdAfter
-      const query = getConnection()
-                    .createQueryBuilder()
-                    .relation(Users, "favorites")
-                    .of(parent)
-                    .select()
+      let favorites = parent.favorites
       if(after){
-        query
-        .where("article.createdAt < :createdAfter", {createdAfter})
+        const createdAfter = this.fromBase64(after).createdAfter 
+        favorites = favorites.filter(f => f.createdAt.toISOString() > createdAfter)
       }
-      const [favorites, count] = await  query.getManyAndCount()
-
+      const count = favorites.length
       return this.paginate(favorites.slice(0, first) , {hasNextPage: count > first})              
     } catch(err){
       return this.paginate([], null)

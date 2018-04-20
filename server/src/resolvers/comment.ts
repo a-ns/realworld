@@ -12,7 +12,7 @@ export const commentResolver = (): ResolverMap => ({
         try {
           const article = await Article.findOne({
             where: { slug: args.slug },
-            relations: ["tagList", "author", "comments", "favoritedBy"]
+            relations: ["author", "comments", "favoritedBy"]
           });
           const author = await Users.findOne({
             where: { username: context.username },

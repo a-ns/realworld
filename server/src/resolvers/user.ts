@@ -9,7 +9,6 @@ import {
   RegisterResponse,
   CommentsProfileArgs,
   FavoritesProfileArgs,
-  FeedQueryArgs,
   ProfileQueryArgs,
   ArticlesProfileArgs,
   UpdateUserMutationArgs
@@ -17,7 +16,6 @@ import {
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
 import { Context } from "../types/context";
-import { ArticleController } from "../controllers/article";
 export const userResolver = (): ResolverMap => ({
   Query: {
     user: RequiresAuth(async (_, __, context: Context, ___) => {
@@ -42,9 +40,8 @@ export const userResolver = (): ResolverMap => ({
       try {
         const profile = await Users.findOne({
           where: args,
-          relations: ["followers"]
+          relations: ["followers", "comments"]
         });
-        
         return { profile };
       } catch (err) {
         return {
@@ -69,10 +66,12 @@ export const userResolver = (): ResolverMap => ({
 
       return controller.create(args);
     },
-    updateUser: RequiresAuth(async (_, args: UpdateUserMutationArgs, context: Context) => {
-      const userController = new UserController(context)
-      return userController.update(args)
-    }),
+    updateUser: RequiresAuth(
+      async (_, args: UpdateUserMutationArgs, context: Context) => {
+        const userController = new UserController(context);
+        return userController.update(args);
+      }
+    ),
     follow: RequiresAuth(async (_, args: any, context: Context) => {
       const userController = new UserController(context);
       return userController.follow(args);
@@ -91,32 +90,37 @@ export const userResolver = (): ResolverMap => ({
         follower => follower.username === context.username
       );
     },
-    comments: (parent: Users, { first, after }: CommentsProfileArgs, context: Context) => {
+    comments: (
+      parent: Users,
+      { first, after }: CommentsProfileArgs,
+      context: Context
+    ) => {
       const userController = new UserController(context);
-      return userController.comments({
-        comments: parent.comments,
+      return userController.comments(parent, {
         first,
         after
       });
     },
-    favorites: (parent: Users, { first, after }: FavoritesProfileArgs) => {
-      const userController = new UserController(null);
-      return userController.favorites({
+    favorites: (parent: Users, { first, after }: FavoritesProfileArgs, context: Context) => {
+      const userController = new UserController(context);
+      return userController.favorites(parent, {
         first,
-        after,
-        favorites: parent.favorites
+        after
       });
     },
     // feed: (parent: Users, {first, after}: FeedQueryArgs) => {
     //   const userController = new UserController(null)
     //   return userController.paginate(parent.articles, {first, after})
     // }
-    articles:(parent: Users, {first, after}: ArticlesProfileArgs, context: Context) => {
+    articles: (
+      parent: Users,
+      { first, after }: ArticlesProfileArgs,
+      context: Context
+    ) => {
       // const articleController = new ArticleController(context)
       // return articleController.paginate(parent.articles, {first, after})
-      const userController = new UserController(context)
-      return userController.articlesForProfile(parent, {first, after})
-
-    },
+      const userController = new UserController(context);
+      return userController.articlesForProfile(parent, { first, after });
+    }
   }
 });

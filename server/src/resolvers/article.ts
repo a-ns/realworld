@@ -9,7 +9,8 @@ import {
   UpdateArticleMutationArgs,
   DeleteArticleMutationArgs,
   CommentsArticleArgs,
-  FeedQueryArgs
+  FeedQueryArgs,
+  FavoriteArticleMutationArgs
 } from "../types/";
 import { ArticleController } from "../controllers/article";
 import { Errors } from "../types/error";
@@ -34,18 +35,22 @@ export const articleResolver = (): ResolverMap => ({
     })
   },
   Mutation: {
-    createArticle: (_: any, args: CreateArticleMutationArgs, context: Context) => {
+    createArticle: RequiresAuth(async(_: any, args: CreateArticleMutationArgs, context: Context) => {
       const articleController = new ArticleController(context);
       return articleController.create(args);
-    },
-    deleteArticle: (_: any, args: DeleteArticleMutationArgs, context: Context) => {
+    }),
+    deleteArticle: RequiresAuth(async(_: any, args: DeleteArticleMutationArgs, context: Context) => {
       const articleController = new ArticleController(context);
       return articleController.delete(args);
-    },
-    updateArticle: (_: any, args: UpdateArticleMutationArgs, context: Context) => {
+    }),
+    updateArticle: RequiresAuth(async(_: any, args: UpdateArticleMutationArgs, context: Context) => {
       const articleController = new ArticleController(context);
       return articleController.update(args);
-    }
+    }),
+    favoriteArticle: RequiresAuth(async(_: any, args: FavoriteArticleMutationArgs, context: Context) => {
+      const articleController = new ArticleController(context)
+      return articleController.favorite(args)
+    })
   },
   Article: {
     favorited: (parent: Article, _: any, context: Context) => {
@@ -57,9 +62,6 @@ export const articleResolver = (): ResolverMap => ({
     tagList: (parent: Article) => {
       /* map the Tag objects to their descriptions */
       return parent.tagList.map(tag => tag.kind);
-    },
-    author: (parent: Article) => {
-      return parent.author
     },
     favoritesCount: (parent: Article) => {
       return parent.favoritedBy.length

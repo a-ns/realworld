@@ -19,7 +19,7 @@ export class Article extends BaseEntity {
     @Column()
     body: string
 
-    @ManyToMany(() => Tag)
+    @ManyToMany(() => Tag, {eager: true})
     @JoinTable()
     tagList: Tag[]
 

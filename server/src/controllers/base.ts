@@ -27,7 +27,7 @@ export class BaseController {
       node: item,
       cursor: this.toBase64(item)
     }));
-    console.log(edges);
+    console.log('paginate edges', edges);
     const count = edges.length;
     const pageInfo = {
       hasNextPage: args.hasNextPage,

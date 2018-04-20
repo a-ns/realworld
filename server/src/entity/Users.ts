@@ -30,7 +30,7 @@ export class Users extends BaseEntity {
     @OneToMany(() => Comment, comment => comment.author)
     comments: Comment[]
 
-    @ManyToMany(() => Article, article => article.favoritedBy)
+    @ManyToMany(() => Article, article => article.favoritedBy, {eager: true})
     @JoinTable()
     favorites: Article[]
 
