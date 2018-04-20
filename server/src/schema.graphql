@@ -1,4 +1,4 @@
-interface User {
+type User {
   email: String!
   username: String!
   token: String

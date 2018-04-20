@@ -26,7 +26,7 @@ export class UserController extends BaseController {
   /*
      * Only called for registration.
      */
-  async create(args: RegisterMutationArgs): Promise<MeResponse> {
+  async create(args: RegisterMutationArgs) {
     try {
       if (args.password.length < 5) {
         throw new Error();
@@ -41,7 +41,7 @@ export class UserController extends BaseController {
       });
       return {
         user: {
-          ...pick(user as any, ["email", "token", "username", "bio", "image"]),
+          ...pick(user as any, ["email", "username", "bio", "image"]),
           token
         }
       };
@@ -192,12 +192,17 @@ export class UserController extends BaseController {
   async unfollow({ username }: UnfollowMutationArgs) {
     try {
       const [follower, followed] = await Promise.all([
-        Users.findOne({
-          where: { username: this.context.username }
-        }),
-        Users.findOne({ where: { username } })
-      ]);
-
+        getConnection().createQueryBuilder()
+        .select("id")
+        .from(Users, "user")
+        .where("user.username = :username", {username: this.context.username})
+        .getRawOne(),
+        getConnection().createQueryBuilder()
+        .select("id")
+        .from(Users, "user")
+        .where("user.username = :username", {username})
+        .getRawOne()
+      ])
       if (!follower || !followed) {
         throw new Error();
       }
@@ -205,11 +210,12 @@ export class UserController extends BaseController {
         .createQueryBuilder()
         .delete()
         .from("follows")
-        .where("follower = :followerId", { followerId: follower.id })
-        .andWhere("followed = :followedId", { followedId: followed.id });
+        .where("follower = :id", { id: follower.id })
+        .andWhere("followed = :followedId", {followedId: followed.id });
       await query.execute();
-      return { profile: followed };
+      return { profile: Users.findOne({where: {id: followed.id}, relations: ["articles", "comments", "followers"]}) };
     } catch (err) {
+      console.log(err)
       return {
         errors: {
           body: ["Unable to unfollow specified user"]

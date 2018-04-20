@@ -5,13 +5,13 @@ import { RequiresAuth } from "../auth";
 import {
   LoginMutationArgs,
   RegisterMutationArgs,
-  LoginResponse,
-  RegisterResponse,
   CommentsProfileArgs,
   FavoritesProfileArgs,
   ProfileQueryArgs,
   ArticlesProfileArgs,
-  UpdateUserMutationArgs
+  UpdateUserMutationArgs,
+  MeResponse,
+  UnfollowMutationArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { UserController } from "../controllers/user";
@@ -54,14 +54,14 @@ export const userResolver = (): ResolverMap => ({
     login: async (
       _: any,
       args: LoginMutationArgs
-    ): Promise<LoginResponse | Errors> => {
+    ): Promise<MeResponse | Errors> => {
       const controller = new UserController(null);
       return controller.login(args);
     },
     register: async (
       _: any,
       args: RegisterMutationArgs
-    ): Promise<RegisterResponse | Errors> => {
+    ): Promise<MeResponse | Errors> => {
       const controller = new UserController(null);
 
       return controller.create(args);
@@ -76,7 +76,7 @@ export const userResolver = (): ResolverMap => ({
       const userController = new UserController(context);
       return userController.follow(args);
     }),
-    unfollow: RequiresAuth(async (_, args: any, context: Context) => {
+    unfollow: RequiresAuth(async (_, args: UnfollowMutationArgs, context: Context) => {
       const userController = new UserController(context);
       return userController.unfollow(args);
     })
