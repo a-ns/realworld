@@ -55,7 +55,6 @@ export const commentResolver = (): ResolverMap => ({
           await comment.remove();
           return true;
         } catch (err) {
-          console.log(err)
           return false;
         }
       }

@@ -1,7 +1,15 @@
 /* tslint:disable */
 
+export interface User {
+  email: string;
+  username: string;
+  token?: string | null;
+  image?: string | null;
+  bio?: string | null;
+}
+
 export interface Query {
-  user?: User | null;
+  user: MeResponse;
   article?: Article | null;
   articles?: ArticlesConnection | null;
   feed?: ArticlesConnection | null;
@@ -9,12 +17,13 @@ export interface Query {
   tags?: string[] | null;
 }
 
-export interface User {
-  email: string;
-  username: string;
-  token?: string | null;
-  image?: string | null;
-  bio: string;
+export interface MeResponse {
+  user?: User | null;
+  errors?: Error | null;
+}
+
+export interface Error {
+  body: string[];
 }
 
 export interface Article {
@@ -39,7 +48,6 @@ export interface Profile {
   articles?: ArticlesConnection | null;
   comments?: CommentsConnection | null;
   favorites?: ArticlesConnection | null;
-  feed?: ArticlesConnection | null;
 }
 
 export interface ArticlesConnection {
@@ -82,35 +90,18 @@ export interface ProfileResponse {
   errors?: Error | null;
 }
 
-export interface Error {
-  body: string[];
-}
-
 export interface Mutation {
-  login: LoginResponse;
-  register: RegisterResponse;
-  updateUser: UserResponse;
+  login: MeResponse;
+  register: MeResponse;
+  updateUser: MeResponse;
+  follow: ProfileResponse;
+  unfollow: ProfileResponse;
   createArticle: ArticleResponse;
   updateArticle?: ArticleResponse | null;
   favoriteArticle?: ArticleResponse | null;
   deleteArticle: boolean;
   addComment: CommentResponse;
   deleteComment: boolean;
-}
-
-export interface LoginResponse {
-  user?: User | null;
-  errors?: Error | null;
-}
-
-export interface RegisterResponse {
-  user?: User | null;
-  errors?: Error | null;
-}
-
-export interface UserResponse {
-  user?: User | null;
-  errors?: Error | null;
 }
 
 export interface ArticleResponse {
@@ -159,10 +150,6 @@ export interface FavoritesProfileArgs {
   first?: number | null;
   after?: string | null;
 }
-export interface FeedProfileArgs {
-  first?: number | null;
-  after?: string | null;
-}
 export interface LoginMutationArgs {
   email: string;
   password: string;
@@ -176,6 +163,12 @@ export interface UpdateUserMutationArgs {
   email?: string | null;
   bio?: string | null;
   image?: string | null;
+}
+export interface FollowMutationArgs {
+  username: string;
+}
+export interface UnfollowMutationArgs {
+  username: string;
 }
 export interface CreateArticleMutationArgs {
   slug: string;

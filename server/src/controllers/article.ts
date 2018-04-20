@@ -17,7 +17,6 @@ import { BaseController } from "./base";
 import { Users } from "../entity/Users";
 import { Context } from "../types/context";
 import { getConnection } from "typeorm";
-import { Comment } from "../entity/Comment";
 
 export class ArticleController extends BaseController {
   context: Context;
@@ -57,7 +56,6 @@ export class ArticleController extends BaseController {
       author.save();
       return { article };
     } catch (err) {
-      console.log(err);
       return {
         errors: { body: ["Unable to create this article."] }
       };
@@ -68,7 +66,7 @@ export class ArticleController extends BaseController {
     try {
       return Article.findOne({
         where: { slug: args.slug },
-        relations: ["tagList", "author", "favoritedBy"]
+        relations: [ "author", "favoritedBy", "comments"]
       });
     } catch (err) {
       return {
@@ -82,7 +80,7 @@ export class ArticleController extends BaseController {
     try {
       const articles = await Article.find({
         where: args,
-        relations: ["tagList", "author", "favoritedBy"]
+        relations: [ "author", "favoritedBy"]
       });
 
       const edges = articles.map(article => {
@@ -132,19 +130,17 @@ export class ArticleController extends BaseController {
     }
   }
 
-  async comments(parent: Article, { first, after }: CommentsArticleArgs) {
+  async comments(parent: Article, { first = 10, after = null }: CommentsArticleArgs) {
     try {
-      const createdAfter = this.fromBase64(after).createdAfter;
-      const [comments, count] = await getConnection()
-        .createQueryBuilder()
-        .select()
-        .from(Comment, "comment")
-        .where("comment.articleId = :articleId", { articleId: parent.id })
-        .andWhere("comment.createdAt < :createdAfter", { createdAfter })
-        .orderBy("comment.createdAt", "DESC")
-        .getManyAndCount();
+      let comments = parent.comments
+      
+      if(after){
+        const createdAfter: any = this.fromBase64(after).createdAt
+        comments = comments.filter(c => c.createdAt.toISOString() > createdAfter)
+      }
+        
       return this.paginate(comments.slice(0, first), {
-        hasNextPage: count > first
+        hasNextPage: comments.length > first
       });
     } catch (err) {
       return this.paginate([], null);
@@ -172,9 +168,8 @@ export class ArticleController extends BaseController {
 
   async favorite(args: FavoriteArticleMutationArgs) {
     try {
-      console.log('in favorite')
       const [article, user] = await Promise.all([
-        Article.findOne({ where: { slug: args.slug } , relations: ["author", "favoritedBy", "comments", "tagList"]}),
+        Article.findOne({ where: { slug: args.slug } , relations: ["author", "favoritedBy", "comments"]}),
         Users.findOne({
           where: { username: this.context.username }
         })
@@ -182,12 +177,13 @@ export class ArticleController extends BaseController {
       if(!article || !user){
         throw new Error()
       }
-      console.log(article,)
+      if(user.favorites.some(f => f.author.id === article.id)) {
+        return {article}
+      }
       user.favorites = [...user.favorites, article];
       user.save();
       return {article};
     } catch (err) {
-      console.log(err)
       return {
         errors: {
           body:[ "unable favorite the specified article"]

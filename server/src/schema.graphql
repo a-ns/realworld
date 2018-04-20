@@ -1,4 +1,4 @@
-type User {
+interface User {
   email: String!
   username: String!
   token: String
@@ -70,25 +70,18 @@ type CommentsConnection {
   pageInfo: PageInfo!
 }
 
-type UserResponse {
-  user: User
-  errors: Error
-}
+
 
 type ArticleResponse {
   article: Article
   errors: Error
 }
 
-type RegisterResponse {
+type MeResponse {
   user: User
   errors: Error
 }
 
-type LoginResponse {
-  user: User
-  errors: Error
-}
 
 type CommentResponse {
   comment: Comment
@@ -107,7 +100,7 @@ input ArticleUpdateInput {
 }
 
 type Query {
-  user: UserResponse!
+  user: MeResponse!
   article(slug: String): Article
   articles(
     tag: String
@@ -121,13 +114,13 @@ type Query {
 }
 
 type Mutation {
-  login(email: String!, password: String!): LoginResponse!
+  login(email: String!, password: String!):MeResponse!
   register(
     email: String!
     password: String!
     username: String!
-  ): RegisterResponse!
-  updateUser(email: String, bio: String, image: String): UserResponse!
+  ): MeResponse!
+  updateUser(email: String, bio: String, image: String): MeResponse!
   follow(username: String!): ProfileResponse!
   unfollow(username: String!): ProfileResponse!
   # Article
