@@ -148,22 +148,27 @@ export class ArticleController extends BaseController {
   }
 
   async feed({ first = 10, after = null }: FeedQueryArgs) {
-    const createdAfter = this.fromBase64(after).createdAt || null;
-    const user = await Users.findOne({
-      where: { username: this.context.username }
-    });
-    const userId = user.id;
-    const [articles, count] = await getConnection()
-      .createQueryBuilder()
-      .select()
-      .from(Article, "article")
-      .where("article.authorId = :authorId", { authorId: userId })
-      .andWhere("article.createdAt < :createdAfter", { createdAfter })
-      .orderBy("article.createdAt", "DESC")
-      .getManyAndCount();
-    return this.paginate(articles.slice(0, first), {
-      hasNextPage: count > first
-    });
+    try {
+      const createdAfter = this.fromBase64(after).createdAt || null;
+      const user = await Users.findOne({
+        where: { username: this.context.username }
+      });
+      const userId = user.id;
+      const [articles, count] = await getConnection()
+        .createQueryBuilder()
+        .select()
+        .from(Article, "article")
+        .where("article.authorId = :authorId", { authorId: userId })
+        .andWhere("article.createdAt < :createdAfter", { createdAfter })
+        .orderBy("article.createdAt", "DESC")
+        .getManyAndCount();
+      return this.paginate(articles.slice(0, first), {
+        hasNextPage: count > first
+      });
+    } catch(err) {
+      return this.paginate([], null)
+    }
+    
   }
 
   async favorite(args: FavoriteArticleMutationArgs) {

@@ -1,0 +1,2 @@
+Client for the [RealWorld](https://github.com/gothinkster/realworld) project.
+Implemented using [React](https://reactjs.org/), [Apollo Graphql](https://www.apollographql.com/), and [MobX](https://mobx.js.org)
