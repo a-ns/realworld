@@ -40,7 +40,7 @@ export const userResolver = (): ResolverMap => ({
       try {
         const profile = await Users.findOne({
           where: args,
-          relations: ["followers", "comments"]
+          relations: ["followers",]
         });
         return { profile };
       } catch (err) {
@@ -117,8 +117,7 @@ export const userResolver = (): ResolverMap => ({
       { first, after }: ArticlesProfileArgs,
       context: Context
     ) => {
-      // const articleController = new ArticleController(context)
-      // return articleController.paginate(parent.articles, {first, after})
+      console.log('profile articles', parent)
       const userController = new UserController(context);
       return userController.articlesForProfile(parent, { first, after });
     }

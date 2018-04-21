@@ -116,21 +116,16 @@ export class UserController extends BaseController {
     { first = 10, after = null }: ArticlesProfileArgs
   ) {
     try {
-      const createdAfter = this.fromBase64(after).createdAt;
-      const query = getConnection()
-        .createQueryBuilder()
-        .select()
-        .from(Article, "article")
-        .where("article.authorId = :authorId", { authorId: parent.id });
-      if (createdAfter) {
-        query.andWhere("article.createdAt < :createdAfter", { createdAfter });
+      let articles = await Article.find({where: {authorId: parent.id}, relations: ["author", "comments", "favoritedBy"]})
+      if (after) {
+        const createdAfter = this.fromBase64(after).createdAt;
+        articles = articles.filter(article => article.createdAt.toISOString() > createdAfter)
       }
-      query.orderBy("article.createdAt", "DESC");
-      const [articles, count] = await query.getManyAndCount();
       return this.paginate(articles.slice(0, first), {
-        hasNextPage: count > first
+        hasNextPage: articles.length > first
       });
     } catch (err) {
+      console.log(err)
       return this.paginate([], null);
     }
   }

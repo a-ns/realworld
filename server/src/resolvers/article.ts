@@ -55,6 +55,7 @@ export const articleResolver = (): ResolverMap => ({
   Article: {
     favorited: (parent: Article, _: any, context: Context) => {
       /* Map the user[] to a single boolean.  */
+      console.log(parent)
       return parent.favoritedBy.some(
         user => user.username === context.username
       );

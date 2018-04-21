@@ -45,12 +45,13 @@ export class ArticleController extends BaseController {
       const finalTags = [...existingTags, ...newTags];
       const author = await Users.findOne({
         where: { username: this.context.username },
-        relations: ["articles"]
+        relations: ["articles", "comments", "followers"]
       });
       const article = await Article.create({
         ...args,
         author,
-        tagList: finalTags
+        tagList: finalTags,
+        favoritedBy: []
       }).save();
       author.articles.push(article);
       author.save();
