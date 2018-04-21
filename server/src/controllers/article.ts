@@ -81,7 +81,7 @@ export class ArticleController extends BaseController {
     try {
       const articles = await Article.find({
         where: args,
-        relations: [ "author", "favoritedBy"]
+        relations: [ "author", "favoritedBy", "comments"]
       });
 
       const edges = articles.map(article => {
@@ -134,7 +134,6 @@ export class ArticleController extends BaseController {
   async comments(parent: Article, { first = 10, after = null }: CommentsArticleArgs) {
     try {
       let comments = parent.comments
-      
       if(after){
         const createdAfter: any = this.fromBase64(after).createdAt
         comments = comments.filter(c => c.createdAt.toISOString() > createdAfter)
