@@ -10,7 +10,7 @@ import {
   CommentsProfileArgs,
   FavoritesProfileArgs,
   UnfollowMutationArgs,
-  FollowMutationArgs,
+  FollowMutationArgs
 } from "../types";
 import { Errors } from "../types/error";
 import { BaseController } from "./base";
@@ -72,7 +72,7 @@ export class UserController extends BaseController {
       user.email = args.email || user.email;
       user.image = args.image || user.image;
       await user.save();
-      return user;
+      return { user };
     } catch (err) {
       return { errors: { body: "Unable to update user" } };
     }
@@ -116,16 +116,21 @@ export class UserController extends BaseController {
     { first = 10, after = null }: ArticlesProfileArgs
   ) {
     try {
-      let articles = await Article.find({where: {authorId: parent.id}, relations: ["author", "comments", "favoritedBy"]})
+      let articles = await Article.find({
+        where: { authorId: parent.id },
+        relations: ["author", "comments", "favoritedBy"]
+      });
       if (after) {
         const createdAfter = this.fromBase64(after).createdAt;
-        articles = articles.filter(article => article.createdAt.toISOString() > createdAfter)
+        articles = articles.filter(
+          article => article.createdAt.toISOString() > createdAfter
+        );
       }
       return this.paginate(articles.slice(0, first), {
         hasNextPage: articles.length > first
       });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return this.paginate([], null);
     }
   }
@@ -164,12 +169,12 @@ export class UserController extends BaseController {
           relations: ["followers"]
         })
       ]);
-      if(!user || !userToFollow){
-        throw new Error()
+      if (!user || !userToFollow) {
+        throw new Error();
       }
-      for(let i = 0; i < userToFollow.followers.length -1; i++){
+      for (let i = 0; i < userToFollow.followers.length - 1; i++) {
         if (userToFollow.followers[i].id === user.id) {
-          return {profile: userToFollow} // already following
+          return { profile: userToFollow }; // already following
         }
       }
       userToFollow.followers = [...userToFollow.followers, user];
@@ -187,17 +192,21 @@ export class UserController extends BaseController {
   async unfollow({ username }: UnfollowMutationArgs) {
     try {
       const [follower, followed] = await Promise.all([
-        getConnection().createQueryBuilder()
-        .select("id")
-        .from(Users, "user")
-        .where("user.username = :username", {username: this.context.username})
-        .getRawOne(),
-        getConnection().createQueryBuilder()
-        .select("id")
-        .from(Users, "user")
-        .where("user.username = :username", {username})
-        .getRawOne()
-      ])
+        getConnection()
+          .createQueryBuilder()
+          .select("id")
+          .from(Users, "user")
+          .where("user.username = :username", {
+            username: this.context.username
+          })
+          .getRawOne(),
+        getConnection()
+          .createQueryBuilder()
+          .select("id")
+          .from(Users, "user")
+          .where("user.username = :username", { username })
+          .getRawOne()
+      ]);
       if (!follower || !followed) {
         throw new Error();
       }
@@ -206,11 +215,16 @@ export class UserController extends BaseController {
         .delete()
         .from("follows")
         .where("follower = :id", { id: follower.id })
-        .andWhere("followed = :followedId", {followedId: followed.id });
+        .andWhere("followed = :followedId", { followedId: followed.id });
       await query.execute();
-      return { profile: Users.findOne({where: {id: followed.id}, relations: ["articles", "comments", "followers"]}) };
+      return {
+        profile: Users.findOne({
+          where: { id: followed.id },
+          relations: ["articles", "comments", "followers"]
+        })
+      };
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return {
         errors: {
           body: ["Unable to unfollow specified user"]
