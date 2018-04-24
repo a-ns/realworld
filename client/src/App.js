@@ -1,14 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Switch, Route } from "react-router";
+import Loadable from "react-loadable";
 import { Navbar, NavbarGroup, NavbarDivider } from "@blueprintjs/core";
 
-import Home from "./pages/Home";
 import Article from "./pages/Article";
-import Register from "./pages/Register";
 import Login from "./pages/Login";
 import { UserContext } from "./Contexts/UserContext";
-
+import Loading from "./Loading";
 const Header = () => (
   <Navbar>
     <NavbarGroup>
@@ -22,7 +21,14 @@ const Header = () => (
     </NavbarGroup>
   </Navbar>
 );
-
+const Register = Loadable({
+  loader: () => import("./pages/Register"),
+  loading: () => <Loading />
+});
+const Home = Loadable({
+  loader: () => import("./pages/Home"),
+  loading: () => <Loading />
+});
 class App extends React.Component {
   state = {
     userContext: {
