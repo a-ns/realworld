@@ -18,6 +18,7 @@ class Register extends React.Component {
     email: "",
     submitTried: false
   };
+
   render() {
     return (
       <Mutation mutation={REGISTER_MUTATION} variables={{ ...this.state }}>
@@ -41,8 +42,7 @@ class Register extends React.Component {
                     <div
                       style={{
                         margin: "0 auto",
-                        width: "400px",
-                        marginTop: "25px"
+                        width: "400px"
                       }}
                     >
                       <form
@@ -95,7 +95,7 @@ class Register extends React.Component {
                             }
                           />
                         </FormGroup>
-                        <Button type="submit" text="Submit" />
+                        <Button intent="primary" type="submit" text="Submit" />
                       </form>
                     </div>
                   );

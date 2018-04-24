@@ -5,6 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "react-apollo";
 
+import "@blueprintjs/core/lib/css/blueprint.css";
+
 const client = new ApolloClient({
   uri: "http://localhost:4000"
 });

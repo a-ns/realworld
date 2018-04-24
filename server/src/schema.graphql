@@ -11,6 +11,7 @@ type Profile {
   bio: String
   image: String
   following: Boolean!
+  email: String!
   articles(first: Int, after: String): ArticlesConnection
   comments(first: Int, after: String): CommentsConnection
   favorites(first: Int, after: String): ArticlesConnection
@@ -70,8 +71,6 @@ type CommentsConnection {
   pageInfo: PageInfo!
 }
 
-
-
 type ArticleResponse {
   article: Article
   errors: Error
@@ -81,7 +80,6 @@ type MeResponse {
   user: User
   errors: Error
 }
-
 
 type CommentResponse {
   comment: Comment
@@ -114,12 +112,8 @@ type Query {
 }
 
 type Mutation {
-  login(email: String!, password: String!):MeResponse!
-  register(
-    email: String!
-    password: String!
-    username: String!
-  ): MeResponse!
+  login(email: String!, password: String!): MeResponse!
+  register(email: String!, password: String!, username: String!): MeResponse!
   updateUser(email: String, bio: String, image: String): MeResponse!
   follow(username: String!): ProfileResponse!
   unfollow(username: String!): ProfileResponse!

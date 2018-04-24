@@ -25,16 +25,30 @@ const Header = () => (
 
 class App extends React.Component {
   state = {
-    username: undefined,
-    token: undefined,
-    updateUser: ({ username, token }) => {
-      console.log("updating", username, token);
-      this.setState(() => ({ username, token }));
+    userContext: {
+      username: undefined,
+      token: undefined,
+      updateUser: this.updateUser
     }
+  };
+
+  componentDidMount() {
+    if (localStorage.getItem("token") && localStorage.getItem("username")) {
+      this.setState({
+        token: localStorage.getItem("token"),
+        username: localStorage.getItem("username")
+      });
+    }
+  }
+
+  updateUser = ({ username, token }) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", username);
+    this.setState({ username, token });
   };
   render() {
     return (
-      <UserContext.Provider value={this.state}>
+      <UserContext.Provider value={this.state.userContext}>
         <Header />
         <Switch>
           <Route exact path="/" component={Home} />
