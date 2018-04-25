@@ -2,14 +2,15 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Switch, Route } from "react-router";
 import Loadable from "react-loadable";
-import { Navbar, NavbarGroup, NavbarDivider } from "@blueprintjs/core";
+import { Navbar, NavbarGroup, NavbarDivider, Text } from "@blueprintjs/core";
 
 import Article from "./pages/Article";
 import Login from "./pages/Login";
 import { UserContext } from "./Contexts/UserContext";
 import Loading from "./Loading";
+
 const Header = () => (
-  <Navbar>
+  <Navbar className="pt-dark">
     <NavbarGroup>
       <Link to="/">Home</Link>
       <NavbarDivider />
