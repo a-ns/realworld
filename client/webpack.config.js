@@ -13,7 +13,6 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin("build"),
-    new CompressionPlugin(),
     new CopyWebpackPlugin([
       { from: path.resolve(__dirname, "public"), to: "." }
     ])
