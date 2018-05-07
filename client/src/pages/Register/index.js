@@ -32,7 +32,6 @@ class Register extends React.Component {
             {({ token, updateUser }) => {
               if (token) return <Redirect to="/" />;
               if (data) {
-                console.log("updating user", data);
                 updateUser({
                   token: data.register.user.token,
                   username: data.register.user.username
@@ -41,67 +40,69 @@ class Register extends React.Component {
               }
               if (loading) return <div>Loading</div>;
               if (error) return <div>Error</div>;
-              if (!data)
-                return (
-                  <div
-                    style={{
-                      margin: "0 auto",
-                      width: "400px"
-                    }}
-                  >
-                    <Card>
-                      <form
-                        onSubmit={e => {
-                          register();
-                          this.setState({ submitTried: true });
-                        }}
-                      >
-                        <FormGroup label="Username" labelFor="username">
-                          <InputGroup
-                            round="true"
-                            name="username"
-                            id="username"
-                            value={this.state.username}
-                            onChange={this.onChange}
-                          />
-                        </FormGroup>
-                        <FormGroup label="Email" labelFor="email">
-                          <InputGroup
-                            round="true"
-                            name="email"
-                            placeholder="user@example.com"
-                            id="email"
-                            intent={
-                              this.state.submitTried &&
-                              this.state.email.length < 1 &&
-                              !validateEmail(this.state.email)
-                                ? "danger"
-                                : "none"
-                            }
-                            value={this.state.email}
-                            onChange={this.onChange}
-                          />
-                        </FormGroup>
-                        <FormGroup label="Password" labelFor="password">
-                          <InputGroup
-                            round="true"
-                            name="password"
-                            intent={
-                              this.state.password.length < 1 &&
-                              this.state.submitTried
-                                ? "danger"
-                                : "none"
-                            }
-                            type="password"
-                            value={this.state.password}
-                            onChange={this.onChange}
-                          />
-                        </FormGroup>
-                        <Button intent="primary" type="submit" text="Submit" />
-                      </form>
-                    </Card>
-                  </div>
-                );
+              return (
+                <div
+                  style={{
+                    margin: "0 auto",
+                    width: this.props.width || "400px",
+                    height: this.props.height || "auto"
+                  }}
+                >
+                  <Card>
+                    <form
+                      onSubmit={e => {
+                        register();
+                        this.setState({ submitTried: true });
+                      }}
+                    >
+                      <FormGroup label="Username" labelFor="username">
+                        <InputGroup
+                          // round="true"
+                          placeholder="This cannot be changed!"
+                          name="username"
+                          id="username"
+                          value={this.state.username}
+                          onChange={this.onChange}
+                        />
+                      </FormGroup>
+                      <FormGroup label="Email" labelFor="email">
+                        <InputGroup
+                          // round="true"
+                          name="email"
+                          placeholder="user@example.com"
+                          id="email"
+                          intent={
+                            this.state.submitTried &&
+                            this.state.email.length < 1 &&
+                            !validateEmail(this.state.email)
+                              ? "danger"
+                              : "none"
+                          }
+                          value={this.state.email}
+                          onChange={this.onChange}
+                        />
+                      </FormGroup>
+                      <FormGroup label="Password" labelFor="password">
+                        <InputGroup
+                          // round="true"
+                          name="password"
+                          intent={
+                            this.state.password.length < 1 &&
+                            this.state.submitTried
+                              ? "danger"
+                              : "none"
+                          }
+                          placeholder="Must be at least 6 characters"
+                          type="password"
+                          value={this.state.password}
+                          onChange={this.onChange}
+                        />
+                      </FormGroup>
+                      <Button intent="primary" type="submit" text="Submit" />
+                    </form>
+                  </Card>
+                </div>
+              );
             }}
           </UserContext.Consumer>
         )}

@@ -2,3 +2,8 @@ svg path,
 svg rect {
   fill: #137cbd;
 }
+
+.loadingContainer {
+  width: 40px;
+  margin: 0 auto;
+}

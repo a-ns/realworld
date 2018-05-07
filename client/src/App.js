@@ -2,7 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Switch, Route } from "react-router";
 import Loadable from "react-loadable";
-import { Navbar, NavbarGroup, NavbarDivider, Text } from "@blueprintjs/core";
+import {
+  Navbar,
+  NavbarGroup,
+  NavbarDivider,
+  Text,
+  Alignment,
+  Button
+} from "@blueprintjs/core";
 
 import Article from "./pages/Article";
 import Login from "./pages/Login";
@@ -10,17 +17,32 @@ import { UserContext } from "./Contexts/UserContext";
 import Loading from "./Loading";
 
 const Header = () => (
-  <Navbar className="pt-dark">
-    <NavbarGroup>
-      <Link to="/">Home</Link>
-      <NavbarDivider />
-      <Link to="/me">Me</Link>
-      <NavbarDivider />
-      <Link to="/login">Login</Link>
-      <NavbarDivider />
-      <Link to="/register">Register</Link>
-    </NavbarGroup>
-  </Navbar>
+  <UserContext>
+    {({ token, username }) => (
+      <Navbar>
+        <NavbarGroup align={Alignment.LEFT}>
+          <Link to="/">
+            <Button className="pt-minimal" text="Home" />
+          </Link>
+          <NavbarDivider />
+          <Link to="/me">
+            <Button className="pt-minimal" text="Me" />
+          </Link>
+          <NavbarDivider />
+          <Link to="/login">
+            <Button className="pt-minimal" text="Login" />
+          </Link>
+          <NavbarDivider />
+          <Link to="/register">
+            <Button className="pt-minimal" text="Register" />
+          </Link>
+        </NavbarGroup>
+        <NavbarGroup align={Alignment.RIGHT}>
+          {token ? <Button>Logout</Button> : null}
+        </NavbarGroup>
+      </Navbar>
+    )}
+  </UserContext>
 );
 const Register = Loadable({
   loader: () => import("./pages/Register"),

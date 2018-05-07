@@ -1,7 +1,5 @@
 const path = require("path");
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
-  .BundleAnalyzerPlugin;
-const CompressionPlugin = require("compression-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 module.exports = {
@@ -9,13 +7,19 @@ module.exports = {
   entry: "./src/index.js",
   output: {
     filename: "bundle.js",
-    path: path.resolve(__dirname, "build")
+    path: path.resolve(__dirname, "build"),
+    publicPath: "/"
   },
   plugins: [
     new CleanWebpackPlugin("build"),
-    new CopyWebpackPlugin([
-      { from: path.resolve(__dirname, "public"), to: "." }
-    ])
+    new HtmlWebpackPlugin({
+      filename: "index.html",
+      template: path.resolve(__dirname, "public/index.html")
+    }),
+    new HtmlWebpackPlugin({
+      filename: "404.html",
+      template: path.resolve(__dirname, "public/index.html")
+    })
   ],
   module: {
     rules: [

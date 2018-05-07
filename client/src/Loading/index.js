@@ -2,7 +2,7 @@ import React from "react";
 import "./index.css";
 const Loading = () => {
   return (
-    <div style={{ margin: "0 auto", width: "40px", height: "40px" }}>
+    <div className="loadingContainer">
       <svg
         version="1.1"
         id="loader-1"
