@@ -16,7 +16,7 @@ import Login from "./pages/Login";
 import { UserContext } from "./Contexts/UserContext";
 import Loading from "./Loading";
 
-const Header = () => (
+const Header = props => (
   <UserContext>
     {({ token, username }) => (
       <Navbar>
@@ -38,7 +38,7 @@ const Header = () => (
           </Link>
         </NavbarGroup>
         <NavbarGroup align={Alignment.RIGHT}>
-          {token ? <Button>Logout</Button> : null}
+          {token ? <Button onClick={props.logout}>Logout</Button> : null}
         </NavbarGroup>
       </Navbar>
     )}
@@ -53,10 +53,18 @@ const Home = Loadable({
   loading: () => <Loading />
 });
 class App extends React.Component {
+  updateUser = ({ username, token }) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", username);
+    this.setState({
+      userContext: { ...this.state.userContext, username, token }
+    });
+  };
+
   state = {
     userContext: {
-      username: undefined,
-      token: undefined,
+      username: "",
+      token: "",
       updateUser: this.updateUser
     }
   };
@@ -64,21 +72,31 @@ class App extends React.Component {
   componentDidMount() {
     if (localStorage.getItem("token") && localStorage.getItem("username")) {
       this.setState({
-        token: localStorage.getItem("token"),
-        username: localStorage.getItem("username")
+        userContext: {
+          ...this.state.userContext,
+          token: localStorage.getItem("token"),
+          username: localStorage.getItem("username")
+        }
       });
     }
   }
 
-  updateUser = ({ username, token }) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("username", username);
-    this.setState({ username, token });
+  logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    this.setState({
+      userContext: {
+        ...this.state.userContext,
+        username: "",
+        token: ""
+      }
+    });
   };
+
   render() {
     return (
       <UserContext.Provider value={this.state.userContext}>
-        <Header />
+        <Header logout={this.logout} />
         <Switch>
           <Route exact path="/" component={Home} />
           <Route exact path="/register" component={Register} />
